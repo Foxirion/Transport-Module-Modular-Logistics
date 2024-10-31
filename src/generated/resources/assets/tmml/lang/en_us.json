@@ -1,0 +1,6 @@
+{
+  "item.tmml.void_bottle": "Void Bottle",
+  "item.void_bottle.description": "§4Consuming this will result in certain death.",
+  "item.void_bottle.warning": "§c§lWARNING: DO NOT DRINK!",
+  "tmml.creativetab": "Transport Module: Modular Logistics"
+}

@@ -1,5 +1,7 @@
 package net.foxirion.tmml.init;
 
+import net.foxirion.tmml.item.TMMLCreativeModeTabs;
+import net.foxirion.tmml.item.TMMLItems;
 import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 
@@ -13,7 +15,8 @@ public class TMML {
     public static final Logger logger = LoggerFactory.getLogger(TMML.class);
 
     public TMML(IEventBus bus) {
-
+        TMMLItems.ITEMS.register(bus);
+        TMMLCreativeModeTabs.CREATIVE_TAB.register(bus);
     }
 
     public static ResourceLocation rl(String path) {
