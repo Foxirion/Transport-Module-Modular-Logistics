@@ -20,12 +20,14 @@ public class LangProvider extends LanguageProvider {
     @Override
     protected void addTranslations() {
 
-        // Items
+        // Void Bottle translations
+        // item name
         addItem(TMMLItems.VOID_BOTTLE, "Void Bottle");
-
-        // Void Bottle Translations
+        // description
         add("item.void_bottle.warning", "§c§lWARNING: DO NOT DRINK!");
         add("item.void_bottle.description", "§4Consuming this will result in certain death.");
+        // death message
+        add("death.void_bottle", "%1$s has been erased from reality by drinking void");
 
         // Creative Tab
         add(TMMLCreativeModeTabs.TMML_TABS, "Transport Module: Modular Logistics");
@@ -34,4 +36,5 @@ public class LangProvider extends LanguageProvider {
     public void addObsidianPotion(Supplier<? extends Item> key, Holder<Potion> potionName, String name) {
         add(key.get().getDescriptionId() + ".effect." + potionName.getKey().location().getPath(), name);
     }
+
 }

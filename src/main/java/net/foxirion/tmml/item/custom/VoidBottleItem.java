@@ -9,6 +9,8 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
@@ -33,15 +35,26 @@ public class VoidBottleItem extends Item {
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity entityLiving) {
         super.finishUsingItem(stack, level, entityLiving);
+
         if (entityLiving instanceof ServerPlayer serverplayer) {
             CriteriaTriggers.CONSUME_ITEM.trigger(serverplayer, stack);
             serverplayer.awardStat(Stats.ITEM_USED.get(this));
         }
 
         if (!level.isClientSide) {
-            entityLiving.addEffect(new MobEffectInstance(MobEffects.HARM, 1, 200, true, true, false));
-            entityLiving.addEffect(new MobEffectInstance(MobEffects.HARM, 1, 200, true, true, false));
-            entityLiving.addEffect(new MobEffectInstance(MobEffects.WITHER, 1, 200, true, true, false));
+            // Create a custom damage source using GENERIC KILL damage type
+            DamageSource voidDamageSource = level.damageSources().source(DamageTypes.GENERIC_KILL);
+
+            // Directly set health to 0 and apply the custom damage source
+            if (entityLiving instanceof Player player) {
+                player.setHealth(0f);
+                player.hurt(voidDamageSource, Float.MAX_VALUE);
+
+                // If you want to set a custom death message, you'll need to use a different approach
+                // For example, you might want to broadcast a custom death message
+                Component deathMessage = Component.translatable("death.void_bottle", player.getDisplayName());
+                player.level().getServer().getPlayerList().broadcastSystemMessage(deathMessage, false);
+            }
         }
 
         if (stack.isEmpty()) {
