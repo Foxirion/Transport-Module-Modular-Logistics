@@ -1,21 +1,26 @@
 package net.foxirion.tmml.item.custom;
 
-import net.foxirion.tmml.datacomponents.ModDataComponents;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.ItemContainerContents;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+
+import java.util.List;
 
 public class BlockTransportModule extends Item {
     public BlockTransportModule(Properties properties) {
@@ -24,130 +29,84 @@ public class BlockTransportModule extends Item {
 
     @Override
     public InteractionResult useOn(UseOnContext context) {
-        Level world = context.getLevel();
+        Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
         Player player = context.getPlayer();
-        ItemStack transportModule = context.getItemInHand();
+        Direction clickedFace = context.getClickedFace();
+        ItemStack stack = context.getItemInHand();
 
         if (player == null) return InteractionResult.FAIL;
 
-        // If not sneaking, attempt to pick up or place block
-        if (!player.isShiftKeyDown()) {
-            return handleBlockTransport(world, pos, player, transportModule);
-        }
-
-        return super.useOn(context);
-    }
-
-    private InteractionResult handleBlockTransport(Level world, BlockPos pos, Player player, ItemStack transportModule) {
-        ItemStack currentBlock = transportModule.get(ModDataComponents.BLOCK_TRANSPORT_MODULE);
-
-        // If not carrying a block, attempt to pick up
-        if (currentBlock == null) {
-            return pickUpBlock(world, pos, player, transportModule);
-        }
-        // If already carrying a block, attempt to place
-        else {
-            return placeCarriedBlock(world, pos, player, transportModule);
+        if (player.isShiftKeyDown()) {
+            return handleBlockStore(level, pos, stack, player);
+        } else {
+            return handleBlockPlace(level, pos, clickedFace, stack, player, context);
         }
     }
 
-    private InteractionResult pickUpBlock(Level world, BlockPos pos, Player player, ItemStack transportModule) {
-        BlockState blockState = world.getBlockState(pos);
-        Block blockToTransport = blockState.getBlock();
+    public InteractionResult handleBlockStore(Level level, BlockPos pos, ItemStack transportModule, Player player) {
+        BlockState blockState = level.getBlockState(pos);
 
-        // Check block transportability conditions
-        if (isBlockTransportable(world, pos, blockState)) {
-            // Create an ItemStack representing the block
-            ItemStack blockItemStack = new ItemStack(blockState.getBlock());
+        if (blockState.isAir() || !level.mayInteract(player, pos)) {
+            return InteractionResult.PASS;
+        }
 
-            // Set the block data including block entity data if applicable
-            BlockEntity blockEntity = world.getBlockEntity(pos);
-            if (blockEntity != null) {
-                // Use NeoForge method for saving block entity data
-                CompoundTag blockEntityData = new CompoundTag();
-                blockEntity.saveAdditional(blockEntityData);
+        ItemStack blockStack = new ItemStack(blockState.getBlock().asItem());
 
-                // Set the block entity data to the item stack
-                blockItemStack.set(DataComponents.BLOCK_ENTITY_DATA, blockEntityData);
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity != null) {
+            CustomData blockEntityTag = blockEntity.components().get(DataComponents.BLOCK_ENTITY_DATA);
+            blockStack.set(DataComponents.BLOCK_ENTITY_DATA, blockEntityTag);
+        }
+
+        NonNullList<ItemStack> itemList = NonNullList.withSize(1, ItemStack.EMPTY);
+        itemList.set(0, blockStack);
+
+        transportModule.set(DataComponents.CONTAINER, ItemContainerContents.fromItems(itemList));
+
+        // Remove the block from the world
+        level.removeBlock(pos, false);
+
+        return InteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    public InteractionResult handleBlockPlace(Level level, BlockPos pos, Direction clickedFace, ItemStack stack, Player player, UseOnContext context) {
+        BlockPos placePos = pos.relative(clickedFace);
+
+        if (!level.isEmptyBlock(placePos) || !level.mayInteract(player, placePos)) {
+            return InteractionResult.PASS;
+        }
+
+        // Get the stored block
+        ItemContainerContents itemContents = stack.getOrDefault(DataComponents.CONTAINER, ItemContainerContents.EMPTY);
+        itemContents.nonEmptyItems();
+        if (!itemContents.getStackInSlot(0).isEmpty()) {
+            ItemStack storedBlock = itemContents.getStackInSlot(0);
+            if (!(storedBlock.getItem() instanceof BlockItem)) {
+                return InteractionResult.PASS;
             }
 
-            // Set the transported block component
-            transportModule.set(ModDataComponents.BLOCK_TRANSPORT_MODULE, blockItemStack);
+            // Place the block
+            BlockItem blockItem = (BlockItem) storedBlock.getItem();
+            BlockPlaceContext blockPlaceContext = new BlockPlaceContext(context);
+            InteractionResult result = blockItem.place(blockPlaceContext);
 
-            // Update module description using modern text methods
-            transportModule.set(
-                    DataComponents.CUSTOM_NAME,
-                    Component.literal("Transport Module: " + blockState.getBlock().getDescriptionId())
-            );
-
-            // Remove original block
-            world.removeBlock(pos, false);
-            return InteractionResult.SUCCESS;
-        }
-
-        return InteractionResult.FAIL;
-    }
-
-    private InteractionResult placeCarriedBlock(Level world, BlockPos pos, Player player, ItemStack transportModule) {
-        ItemStack carriedBlockStack = transportModule.get(ModDataComponents.BLOCK_TRANSPORT_MODULE);
-        if (carriedBlockStack == null) {
-            return InteractionResult.FAIL;
-        }
-
-        BlockPos placePos = pos.relative(player.getDirection());
-        Block blockToPlace = Block.byItem(carriedBlockStack.getItem());
-        BlockState placedState = blockToPlace.defaultBlockState();
-
-        // Try to place the block
-        if (world.setBlock(placePos, placedState, 3)) {
-            // Restore tile entity data if applicable
-            BlockEntity placedBlockEntity = world.getBlockEntity(placePos);
-            if (placedBlockEntity != null) {
-                // Retrieve block entity data from the item stack using NeoForge method
-                CompoundTag blockEntityData = carriedBlockStack.get(DataComponents.BLOCK_ENTITY_DATA);
-                if (blockEntityData != null) {
-                    // Use the new loading method
-                    placedBlockEntity.loadAdditional(blockEntityData);
-                }
+            if (result.consumesAction()) {
+                stack.set(DataComponents.CONTAINER, ItemContainerContents.EMPTY);
             }
 
-            // Remove the transported block component
-            transportModule.remove(ModDataComponents.BLOCK_TRANSPORT_MODULE);
-
-            // Update name using modern text methods
-            transportModule.set(
-                    DataComponents.CUSTOM_NAME,
-                    Component.literal("Transport Module: <Empty>")
-            );
-
-            return InteractionResult.SUCCESS;
+            return result;
         }
-
-        return InteractionResult.FAIL;
-    }
-
-    private boolean isBlockTransportable(Level world, BlockPos pos, BlockState blockState) {
-        return !(
-                // Check for unbreakable blocks
-                blockState.is(world.registryAccess().registryOrThrow(Registries.BLOCK).getHolder(
-                        ResourceLocation.parse("minecraft:bedrock")).orElseThrow()) ||
-                        blockState.is(world.registryAccess().registryOrThrow(Registries.BLOCK).getHolder(
-                                ResourceLocation.parse("minecraft:reinforced_deepslate")).orElseThrow()) ||
-
-                        // Check for liquid, portal, and other non-transportable blocks
-                        blockState.liquid() ||
-                        blockState.is(world.registryAccess().registryOrThrow(Registries.BLOCK).get(ResourceLocation.parse("minecraft:nether_portal"))) ||
-                        blockState.is(world.registryAccess().registryOrThrow(Registries.BLOCK).get(ResourceLocation.parse("minecraft:end_portal")))
-        );
+        return InteractionResult.PASS;
     }
 
     @Override
-    public Component getName(ItemStack stack) {
-        ItemStack currentBlock = stack.get(ModDataComponents.BLOCK_TRANSPORT_MODULE);
-        if (currentBlock != null) {
-            return Component.literal("Transport Module: " + currentBlock.getItem().getDescriptionId());
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        ItemContainerContents itemContents = stack.getOrDefault(DataComponents.CONTAINER, ItemContainerContents.EMPTY);
+        if (!itemContents.getStackInSlot(0).isEmpty()) {
+            tooltipComponents.add(itemContents.getStackInSlot(0).getDisplayName());
+        } else {
+            tooltipComponents.add(Component.literal("[Empty]"));
         }
-        return Component.literal("Transport Module: <Empty>");
     }
 }

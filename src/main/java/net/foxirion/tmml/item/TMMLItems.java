@@ -1,5 +1,6 @@
 package net.foxirion.tmml.item;
 
+import net.foxirion.tmml.item.custom.BlockTransportModule;
 import net.foxirion.tmml.item.custom.VoidBottleItem;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Item;
@@ -16,7 +17,7 @@ public class TMMLItems {
                     .stacksTo(1)));
 
     public static final DeferredHolder<Item, Item> BLOCK_TRANSPORT_MODULE = ITEMS.register("block_transport_module",
-            () -> new Item(new Item.Properties()
+            () -> new BlockTransportModule(new Item.Properties()
                     .stacksTo(1)));
 
     public static final DeferredHolder<Item, Item> ITEM_TRANSPORT_MODULE = ITEMS.register("item_transport_module",
