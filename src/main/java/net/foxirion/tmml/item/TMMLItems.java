@@ -14,4 +14,16 @@ public class TMMLItems {
                     .food(TMMLFoods.VOID_BOTTLE)
                     .fireResistant()
                     .stacksTo(1)));
+
+    public static final DeferredHolder<Item, Item> BLOCK_TRANSPORT_MODULE = ITEMS.register("block_transport_module",
+            () -> new Item(new Item.Properties()
+                    .stacksTo(1)));
+
+    public static final DeferredHolder<Item, Item> ITEM_TRANSPORT_MODULE = ITEMS.register("item_transport_module",
+            () -> new Item(new Item.Properties()
+                    .stacksTo(1)));
+
+    public static final DeferredHolder<Item, Item> ENTITY_TRANSPORT_MODULE = ITEMS.register("entity_transport_module",
+            () -> new Item(new Item.Properties()
+                    .stacksTo(1)));
 }

@@ -1,6 +1,5 @@
 package net.foxirion.tmml.init;
 
-import net.foxirion.tmml.item.TMMLCreativeModeTabs;
 import net.foxirion.tmml.item.TMMLItems;
 import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;

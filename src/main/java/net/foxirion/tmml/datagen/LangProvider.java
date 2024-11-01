@@ -1,6 +1,6 @@
 package net.foxirion.tmml.datagen;
 
-import net.foxirion.tmml.item.TMMLCreativeModeTabs;
+import net.foxirion.tmml.init.TMMLCreativeModeTabs;
 import net.foxirion.tmml.item.TMMLItems;
 import net.minecraft.core.Holder;
 import net.minecraft.data.PackOutput;
@@ -28,6 +28,11 @@ public class LangProvider extends LanguageProvider {
         add("item.void_bottle.description", "§4Consuming this will result in certain death.");
         // death message
         add("death.void_bottle", "%1$s has been erased from reality by drinking void");
+
+        //Transport Modules
+        addItem(TMMLItems.BLOCK_TRANSPORT_MODULE, "Block Transport Module");
+//        addItem(TMMLItems.ITEM_TRANSPORT_MODULE, "Item Transport Module");
+//        addItem(TMMLItems.ENTITY_TRANSPORT_MODULE, "Entity Transport Module");
 
         // Creative Tab
         add(TMMLCreativeModeTabs.TMML_TABS, "Transport Module: Modular Logistics");

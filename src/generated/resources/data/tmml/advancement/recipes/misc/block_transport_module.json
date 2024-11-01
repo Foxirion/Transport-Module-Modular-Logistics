@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "tmml:block_transport_module"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_void_bottle": {
+      "conditions": {
+        "items": [
+          {
+            "items": "tmml:void_bottle"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_void_bottle"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "tmml:block_transport_module"
+    ]
+  }
+}

@@ -1,5 +1,6 @@
 package net.foxirion.tmml.datagen;
 
+import net.foxirion.tmml.datagen.recipe.TMMLRecipeProvider;
 import net.foxirion.tmml.init.TMML;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
@@ -24,6 +25,8 @@ public class DataGenerators {
             CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
 
             generator.addProvider(true, new LangProvider(output));
+
+            generator.addProvider(true, new TMMLRecipeProvider(output, lookupProvider));
 
             generator.addProvider(true, new TMMLItemModelProvider(output, existingFileHelper));
 
