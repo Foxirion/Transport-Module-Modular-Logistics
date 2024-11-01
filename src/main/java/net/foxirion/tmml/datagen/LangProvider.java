@@ -31,8 +31,8 @@ public class LangProvider extends LanguageProvider {
 
         //Transport Modules
         addItem(TMMLItems.BLOCK_TRANSPORT_MODULE, "Block Transport Module");
-//        addItem(TMMLItems.ITEM_TRANSPORT_MODULE, "Item Transport Module");
-//        addItem(TMMLItems.ENTITY_TRANSPORT_MODULE, "Entity Transport Module");
+        addItem(TMMLItems.LIQUID_TRANSPORT_MODULE, "Liquid Transport Module");
+        addItem(TMMLItems.ENTITY_TRANSPORT_MODULE, "Entity Transport Module");
 
         // Creative Tab
         add(TMMLCreativeModeTabs.TMML_TABS, "Transport Module: Modular Logistics");

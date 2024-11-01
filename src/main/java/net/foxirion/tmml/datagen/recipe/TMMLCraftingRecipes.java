@@ -27,5 +27,25 @@ public class TMMLCraftingRecipes extends TMMLRecipeProvider{
                 .pattern("DID")
                 .unlockedBy(getHasName(TMMLItems.VOID_BOTTLE.get()), has(TMMLItems.VOID_BOTTLE.get()))
                 .save(recipeOutput);
+
+//        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, TMMLItems.LIQUID_TRANSPORT_MODULE.get())
+//                .define('V', TMMLItems.VOID_BOTTLE.get())
+//                .define('I', Items.IRON_INGOT)
+//                .define('D', Items.REDSTONE)
+//                .pattern("DID")
+//                .pattern("IVI")
+//                .pattern("DID")
+//                .unlockedBy(getHasName(TMMLItems.VOID_BOTTLE.get()), has(TMMLItems.VOID_BOTTLE.get()))
+//                .save(recipeOutput);
+//
+//        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, TMMLItems.ENTITY_TRANSPORT_MODULE.get())
+//                .define('V', TMMLItems.VOID_BOTTLE.get())
+//                .define('I', Items.IRON_INGOT)
+//                .define('D', Items.EMERALD)
+//                .pattern("DID")
+//                .pattern("IVI")
+//                .pattern("DID")
+//                .unlockedBy(getHasName(TMMLItems.VOID_BOTTLE.get()), has(TMMLItems.VOID_BOTTLE.get()))
+//                .save(recipeOutput);
     }
 }

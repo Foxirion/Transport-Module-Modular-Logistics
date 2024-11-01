@@ -1,6 +1,6 @@
 {
   "parent": "tmml:item/transport_module",
   "textures": {
-    "layer0": "tmml:item/item_transport_module"
+    "layer0": "tmml:item/liquid_transport_module"
   }
 }

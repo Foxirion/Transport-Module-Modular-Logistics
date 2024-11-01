@@ -21,7 +21,7 @@ public class TMMLItemModelProvider extends ItemModelProvider {
 
         //Transport Modules
         createModule(TMMLItems.BLOCK_TRANSPORT_MODULE.get());
-        createModule(TMMLItems.ITEM_TRANSPORT_MODULE.get());
+        createModule(TMMLItems.LIQUID_TRANSPORT_MODULE.get());
         createModule(TMMLItems.ENTITY_TRANSPORT_MODULE.get());
 
     }
