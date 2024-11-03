@@ -67,6 +67,9 @@
                 blockState.is(Blocks.END_GATEWAY) ||
                 blockState.is(Blocks.VOID_AIR) ||
                 blockState.is(Blocks.CAVE_AIR) ||
+                blockState.is(Blocks.COMMAND_BLOCK) ||
+                blockState.is(Blocks.STRUCTURE_BLOCK) ||
+                blockState.is(Blocks.STRUCTURE_VOID) ||
                 blockState.is(Blocks.TRIAL_SPAWNER)) {
 
                 // Send a message to the player if they try to pick up an unpickupable block
