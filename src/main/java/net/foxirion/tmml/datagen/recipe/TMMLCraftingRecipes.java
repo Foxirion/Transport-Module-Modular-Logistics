@@ -6,6 +6,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.world.item.Items;
 
 import java.util.concurrent.CompletableFuture;
@@ -47,5 +48,10 @@ public class TMMLCraftingRecipes extends TMMLRecipeProvider{
 //                .pattern("DID")
 //                .unlockedBy(getHasName(TMMLItems.VOID_BOTTLE.get()), has(TMMLItems.VOID_BOTTLE.get()))
 //                .save(recipeOutput);
+
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, TMMLItems.BLOCK_TRANSPORT_MODULE.get())
+                .requires(TMMLItems.BLOCK_TRANSPORT_MODULE.get())
+                .unlockedBy(getHasName(TMMLItems.BLOCK_TRANSPORT_MODULE.get()), has(TMMLItems.BLOCK_TRANSPORT_MODULE.get()))
+                .save(recipeOutput, "block_transport_module_fix");
     }
 }

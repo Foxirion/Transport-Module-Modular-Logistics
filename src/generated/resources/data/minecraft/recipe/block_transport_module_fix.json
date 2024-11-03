@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "tmml:block_transport_module"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "tmml:block_transport_module"
+  }
+}
