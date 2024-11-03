@@ -18,6 +18,7 @@
     import net.minecraft.world.item.context.BlockPlaceContext;
     import net.minecraft.world.item.context.UseOnContext;
     import net.minecraft.world.level.Level;
+    import net.minecraft.world.level.block.Blocks;
     import net.minecraft.world.level.block.entity.BlockEntity;
     import net.minecraft.world.level.block.state.BlockState;
 
@@ -57,9 +58,25 @@
         public InteractionResult handleBlockStore(Level level, BlockPos pos, ItemStack transportModule, Player player) {
             BlockState blockState = level.getBlockState(pos);
 
-            if (blockState.isAir() || !level.mayInteract(player, pos)) {
-                return InteractionResult.PASS;
+            if (blockState.isAir() ||
+                !level.mayInteract(player, pos) ||
+                blockState.is(Blocks.BEDROCK) ||
+                blockState.is(Blocks.END_PORTAL) ||
+                blockState.is(Blocks.NETHER_PORTAL) ||
+                blockState.is(Blocks.REINFORCED_DEEPSLATE) ||
+                blockState.is(Blocks.END_GATEWAY) ||
+                blockState.is(Blocks.VOID_AIR) ||
+                blockState.is(Blocks.CAVE_AIR) ||
+                blockState.is(Blocks.TRIAL_SPAWNER)) {
+
+                // Send a message to the player if they try to pick up an unpickupable block
+                if (player != null && !level.isClientSide) {
+                    player.displayClientMessage(Component.literal("This block cannot be picked up."), true);
+                }
+
+                return InteractionResult.FAIL; // or InteractionResult.PASS if you just want it to skip this block silently
             }
+
 
             // Create ItemStack from the block
             ItemStack blockStack = new ItemStack(blockState.getBlock().asItem());
