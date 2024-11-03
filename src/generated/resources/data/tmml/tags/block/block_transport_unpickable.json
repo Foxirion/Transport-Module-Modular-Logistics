@@ -1,0 +1,20 @@
+{
+  "values": [
+    "#minecraft:fire",
+    "#minecraft:portals",
+    "#minecraft:air",
+    "minecraft:barrier",
+    "minecraft:bedrock",
+    "minecraft:reinforced_deepslate",
+    "minecraft:command_block",
+    "minecraft:repeating_command_block",
+    "minecraft:structure_void",
+    "minecraft:chain_command_block",
+    "minecraft:structure_block",
+    "minecraft:jigsaw",
+    "minecraft:moving_piston",
+    "minecraft:light",
+    "minecraft:trial_spawner",
+    "minecraft:respawn_anchor"
+  ]
+}
