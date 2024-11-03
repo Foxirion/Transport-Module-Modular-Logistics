@@ -4,7 +4,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -79,10 +78,13 @@ public class BlockTransportModule extends Item {
 
         // Get the stored block
         ItemContainerContents itemContents = stack.getOrDefault(DataComponents.CONTAINER, ItemContainerContents.EMPTY);
-        itemContents.nonEmptyItems();
-        if (!itemContents.getStackInSlot(0).isEmpty()) {
+        if (itemContents == ItemContainerContents.EMPTY) {
+            return InteractionResult.PASS;
+        }
+
+        try {
             ItemStack storedBlock = itemContents.getStackInSlot(0);
-            if (!(storedBlock.getItem() instanceof BlockItem)) {
+            if (storedBlock.isEmpty() || !(storedBlock.getItem() instanceof BlockItem)) {
                 return InteractionResult.PASS;
             }
 
@@ -96,17 +98,25 @@ public class BlockTransportModule extends Item {
             }
 
             return result;
+        } catch (UnsupportedOperationException e) {
+            return InteractionResult.PASS;
         }
-        return InteractionResult.PASS;
     }
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         ItemContainerContents itemContents = stack.getOrDefault(DataComponents.CONTAINER, ItemContainerContents.EMPTY);
-        if (!itemContents.getStackInSlot(0).isEmpty()) {
-            tooltipComponents.add(itemContents.getStackInSlot(0).getDisplayName());
-        } else {
-            tooltipComponents.add(Component.literal("[Empty]"));
+        if (itemContents != ItemContainerContents.EMPTY) {
+            try {
+                ItemStack storedStack = itemContents.getStackInSlot(0);
+                if (!storedStack.isEmpty()) {
+                    tooltipComponents.add(storedStack.getDisplayName());
+                    return;
+                }
+            } catch (UnsupportedOperationException e) {
+                // Handle the case where slot 0 doesn't exist
+            }
         }
+        tooltipComponents.add(Component.literal("[Empty]"));
     }
 }
