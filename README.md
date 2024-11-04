@@ -1,13 +1,13 @@
 ![TMML Logo](https://raw.githubusercontent.com/Foxirion/Transport-Module-Modular-Logistics/refs/heads/main/src/main/resources/TMML_title.png)
 
 <p align="center">
-  <a href="https://www.curseforge.com/minecraft/mc-mods/transport-module-modular-logistics"><img alt="curseforge" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/available/curseforge_vector.svg"></a>
-  <a href="https://modrinth.com/mod/transport-module-modular-logistics"><img alt="modrinth" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/available/modrinth_vector.svg"></a>
+  <a href="https://www.curseforge.com/minecraft/mc-mods/tmml"><img alt="curseforge" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/available/curseforge_vector.svg"></a>
+  <a href="https://modrinth.com/mod/tmml"><img alt="modrinth" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/available/modrinth_vector.svg"></a>
 </p>
 
 <p align="center">
-  <a href="https://www.curseforge.com/minecraft/mc-mods/transport-module-modular-logistics"><img alt="CurseForge Downloads" src="https://img.shields.io/curseforge/dt/1133923?style=for-the-badge&logo=curseforge&color=1B3193"></a>
-  <a href="https://modrinth.com/mod/transport-module-modular-logistics"><img alt="Modrinth Downloads" src="https://img.shields.io/modrinth/dt/7Bs4lCxX?style=for-the-badge&logo=modrinth&color=1B3193"></a>
+  <a href="https://www.curseforge.com/minecraft/mc-mods/tmml"><img alt="CurseForge Downloads" src="https://img.shields.io/curseforge/dt/1133923?style=for-the-badge&logo=curseforge&color=1B3193"></a>
+  <a href="https://modrinth.com/mod/tmml"><img alt="Modrinth Downloads" src="https://img.shields.io/modrinth/dt/7Bs4lCxX?style=for-the-badge&logo=modrinth&color=1B3193"></a>
 </p>
 
 <p align="center">
@@ -46,7 +46,7 @@
   </tr>
 </table>
 
-## 🗞️ Transport Module: Modular Logistics News
+## 🗞️ Transport Modules: Modular Logistics News
 
 Release Version 1.0.0 RELEASED!
 
