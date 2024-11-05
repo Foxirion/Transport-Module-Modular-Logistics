@@ -2,13 +2,9 @@ package net.foxirion.tmml.datagen;
 
 import net.foxirion.tmml.init.TMMLCreativeModeTabs;
 import net.foxirion.tmml.item.TMMLItems;
-import net.minecraft.core.Holder;
 import net.minecraft.data.PackOutput;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.alchemy.Potion;
-import net.neoforged.neoforge.common.data.LanguageProvider;
+import net.minecraftforge.common.data.LanguageProvider;
 
-import java.util.function.Supplier;
 
 import static net.foxirion.tmml.init.TMML.TMMLID;
 
@@ -35,11 +31,7 @@ public class LangProvider extends LanguageProvider {
         addItem(TMMLItems.ENTITY_TRANSPORT_MODULE, "Entity Transport Module");
 
         // Creative Tab
-        add(TMMLCreativeModeTabs.TMML_TABS, "Transport Module: Modular Logistics");
-    }
-
-    public void addObsidianPotion(Supplier<? extends Item> key, Holder<Potion> potionName, String name) {
-        add(key.get().getDescriptionId() + ".effect." + potionName.getKey().location().getPath(), name);
+        add(TMMLCreativeModeTabs.TMML_TABS, "Transport Modules: Modular Logistics");
     }
 
 }

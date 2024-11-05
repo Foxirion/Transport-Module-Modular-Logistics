@@ -1,6 +1,0 @@
-{
-  "parent": "tmml:item/transport_module",
-  "textures": {
-    "layer0": "tmml:item/block_transport_module"
-  }
-}

@@ -9,15 +9,12 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.DamageTypes;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class VoidBottleItem extends Item {
@@ -27,7 +24,7 @@ public class VoidBottleItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         tooltipComponents.add(Component.translatable("item.void_bottle.warning").withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
         tooltipComponents.add(Component.translatable("item.void_bottle.description").withStyle(ChatFormatting.DARK_RED));
     }
@@ -42,28 +39,25 @@ public class VoidBottleItem extends Item {
         }
 
         if (!level.isClientSide) {
-            // Create a custom damage source using GENERIC KILL damage type
-            DamageSource voidDamageSource = level.damageSources().source(DamageTypes.GENERIC_KILL);
-
-            // Directly set health to 0 and apply the custom damage source
             if (entityLiving instanceof Player player) {
                 player.setHealth(0f);
-                player.hurt(voidDamageSource, Float.MAX_VALUE);
+                player.hurt(level.damageSources().genericKill(), Float.MAX_VALUE);
 
-                // If you want to set a custom death message, you'll need to use a different approach
-                // For example, you might want to broadcast a custom death message
+                // Broadcast custom death message
                 Component deathMessage = Component.translatable("death.void_bottle", player.getDisplayName());
-                player.level().getServer().getPlayerList().broadcastSystemMessage(deathMessage, false);
+                if (player.level().getServer() != null) {
+                    player.level().getServer().getPlayerList().broadcastSystemMessage(deathMessage, false);
+                }
             }
         }
 
         if (stack.isEmpty()) {
             return new ItemStack(Items.GLASS_BOTTLE);
         } else {
-            if (entityLiving instanceof Player player && !player.hasInfiniteMaterials()) {
-                ItemStack itemstack = new ItemStack(Items.GLASS_BOTTLE);
-                if (!player.getInventory().add(itemstack)) {
-                    player.drop(itemstack, false);
+            if (entityLiving instanceof Player player && !player.getAbilities().instabuild) {
+                ItemStack bottleStack = new ItemStack(Items.GLASS_BOTTLE);
+                if (!player.getInventory().add(bottleStack)) {
+                    player.drop(bottleStack, false);
                 }
             }
 
@@ -72,7 +66,7 @@ public class VoidBottleItem extends Item {
     }
 
     @Override
-    public int getUseDuration(ItemStack stack, LivingEntity entity) {
+    public int getUseDuration(ItemStack stack) {
         return 40;
     }
 

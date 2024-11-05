@@ -4,8 +4,8 @@ import net.foxirion.tmml.item.TMMLItems;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.item.Item;
-import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.minecraftforge.client.model.generators.ItemModelProvider;
+import net.minecraftforge.common.data.ExistingFileHelper;
 
 import static net.foxirion.tmml.init.TMML.TMMLID;
 
@@ -23,7 +23,6 @@ public class TMMLItemModelProvider extends ItemModelProvider {
         createModule(TMMLItems.BLOCK_TRANSPORT_MODULE.get());
         createModule(TMMLItems.LIQUID_TRANSPORT_MODULE.get());
         createModule(TMMLItems.ENTITY_TRANSPORT_MODULE.get());
-
     }
 
     //Methods
