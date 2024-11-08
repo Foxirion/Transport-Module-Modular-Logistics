@@ -20,7 +20,7 @@ public class TMMLItems {
             () -> new BlockTransportModule(new Item.Properties()
                     .stacksTo(1)));
 
-    public static final DeferredHolder<Item, Item> LIQUID_TRANSPORT_MODULE = ITEMS.register("liquid_transport_module",
+    public static final DeferredHolder<Item, Item> FLUID_TRANSPORT_MODULE = ITEMS.register("fluid_transport_module",
             () -> new Item(new Item.Properties()
                     .stacksTo(1)));
 

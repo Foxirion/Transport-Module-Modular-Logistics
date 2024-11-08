@@ -31,7 +31,7 @@ public class LangProvider extends LanguageProvider {
 
         //Transport Modules
         addItem(TMMLItems.BLOCK_TRANSPORT_MODULE, "Block Transport Module");
-        addItem(TMMLItems.LIQUID_TRANSPORT_MODULE, "Liquid Transport Module");
+        addItem(TMMLItems.FLUID_TRANSPORT_MODULE, "Fluid Transport Module");
         addItem(TMMLItems.ENTITY_TRANSPORT_MODULE, "Entity Transport Module");
 
         // Creative Tab
