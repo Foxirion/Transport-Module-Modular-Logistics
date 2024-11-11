@@ -93,7 +93,7 @@ public class BlockTransportModule extends Item {
         }
         level.removeBlock(pos, false);
 
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.SUCCESS;
     }
 
     public InteractionResult handleBlockPlace(Level level, BlockPos pos, Direction clickedFace, ItemStack stack, Player player, UseOnContext context) {

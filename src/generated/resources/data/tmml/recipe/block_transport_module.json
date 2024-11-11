@@ -2,15 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "D": {
-      "item": "minecraft:diamond"
-    },
-    "I": {
-      "item": "minecraft:iron_ingot"
-    },
-    "V": {
-      "item": "tmml:void_bottle"
-    }
+    "D": "minecraft:diamond",
+    "I": "minecraft:iron_ingot",
+    "V": "tmml:void_bottle"
   },
   "pattern": [
     "DID",

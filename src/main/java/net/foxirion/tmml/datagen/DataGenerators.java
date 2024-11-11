@@ -29,7 +29,7 @@ public class DataGenerators {
 
             generator.addProvider(true, new TMMLBlockTagsProvider(output, lookupProvider, existingFileHelper));
 
-            generator.addProvider(true, new TMMLRecipeProvider(output, lookupProvider));
+            generator.addProvider(true, new TMMLRecipeProvider.Runner(output, lookupProvider));
 
             generator.addProvider(true, new TMMLItemModelProvider(output, existingFileHelper));
 

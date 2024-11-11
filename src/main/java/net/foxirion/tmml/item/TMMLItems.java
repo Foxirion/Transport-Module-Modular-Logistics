@@ -1,30 +1,52 @@
 package net.foxirion.tmml.item;
 
+import net.foxirion.tmml.init.TMML;
 import net.foxirion.tmml.item.custom.BlockTransportModule;
 import net.foxirion.tmml.item.custom.VoidBottleItem;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
-import net.neoforged.neoforge.registries.DeferredHolder;
+import net.minecraft.world.item.component.Consumables;
+import net.minecraft.world.level.block.Block;
+import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
-public class TMMLItems {
-    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(BuiltInRegistries.ITEM, "tmml");
+import java.util.function.Function;
 
-    public static final DeferredHolder<Item, Item> VOID_BOTTLE = ITEMS.register("void_bottle",
-            () -> new VoidBottleItem(new Item.Properties()
-                    .food(TMMLFoods.VOID_BOTTLE)
+import static net.foxirion.tmml.init.TMML.TMMLID;
+
+public class TMMLItems {
+    public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(TMMLID);
+
+    public static final DeferredItem<Item> VOID_BOTTLE = registerItem("void_bottle", properties ->
+             new VoidBottleItem(properties
+                    .food(TMMLFoods.VOID_BOTTLE, Consumables.DEFAULT_DRINK)
                     .fireResistant()
                     .stacksTo(1)));
 
-    public static final DeferredHolder<Item, Item> BLOCK_TRANSPORT_MODULE = ITEMS.register("block_transport_module",
-            () -> new BlockTransportModule(new Item.Properties()
+    public static final DeferredItem<Item> BLOCK_TRANSPORT_MODULE = registerItem("block_transport_module", properties ->
+             new BlockTransportModule(properties
                     .stacksTo(1)));
 
-    public static final DeferredHolder<Item, Item> FLUID_TRANSPORT_MODULE = ITEMS.register("fluid_transport_module",
-            () -> new Item(new Item.Properties()
+    public static final DeferredItem<Item> FLUID_TRANSPORT_MODULE = registerItem("fluid_transport_module", properties ->
+             new Item(properties
                     .stacksTo(1)));
 
-    public static final DeferredHolder<Item, Item> ENTITY_TRANSPORT_MODULE = ITEMS.register("entity_transport_module",
-            () -> new Item(new Item.Properties()
+    public static final DeferredItem<Item> ENTITY_TRANSPORT_MODULE = registerItem("entity_transport_module", properties ->
+            new Item(properties
                     .stacksTo(1)));
+
+    public static Item createBlockItemWithCustomItemName(Block block, Item.Properties properties) {
+        return new BlockItem(block, properties.useItemDescriptionPrefix());
+    }
+
+    public static ResourceKey<Item> itemId(String name) {
+        return ResourceKey.create(Registries.ITEM, TMML.rl(name));
+    }
+
+    public static <T extends Item> DeferredItem<T> registerItem(String name, Function<Item.Properties, T> itemCreator) {
+        return ITEMS.register(name, () -> itemCreator.apply(new Item.Properties().setId(itemId(name))));
+    }
 }
+
