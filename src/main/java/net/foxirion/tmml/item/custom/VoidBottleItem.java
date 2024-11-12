@@ -9,6 +9,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
@@ -41,15 +42,16 @@ public class VoidBottleItem extends Item {
         if (!level.isClientSide) {
             if (entityLiving instanceof Player player) {
                 player.setHealth(0f);
-                player.hurt(level.damageSources().genericKill(), Float.MAX_VALUE);
+                player.hurt(DamageSource.OUT_OF_WORLD, Float.MAX_VALUE);
 
                 // Broadcast custom death message
                 Component deathMessage = Component.translatable("death.void_bottle", player.getDisplayName());
-                if (player.level().getServer() != null) {
-                    player.level().getServer().getPlayerList().broadcastSystemMessage(deathMessage, false);
+                if (player.getServer() != null) {  // Use player.getServer() instead
+                    player.getServer().getPlayerList().broadcastSystemMessage(deathMessage, false);
                 }
             }
         }
+
 
         if (stack.isEmpty()) {
             return new ItemStack(Items.GLASS_BOTTLE);

@@ -124,7 +124,7 @@ public class BlockTransportModule extends Item {
             BlockPlaceContext blockPlaceContext = new BlockPlaceContext(context);
             InteractionResult result = InteractionResult.SUCCESS;
 
-            if (level.getBlockState(placePos).canBeReplaced()) {
+            if (level.getBlockState(placePos).isAir()) {
                 BlockState blockState = blockItem.getBlock().getStateForPlacement(blockPlaceContext);
                 level.removeBlock(placePos, false);
                 level.setBlock(placePos, blockState, 3);

@@ -1,6 +1,7 @@
 package net.foxirion.tmml.init;
 
-import net.minecraft.core.registries.Registries;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 
@@ -11,6 +12,8 @@ public class TMMLTags {
 
     // Register Tags
     public static TagKey<Block> createBlockTag(String name) {
-        return TagKey.create(Registries.BLOCK, TMML.rl(name));
+        // Use ResourceKey for BLOCK instead of DefaultedRegistry
+        return TagKey.create(Registry.BLOCK_REGISTRY, new ResourceLocation("tmml", name));
     }
 }
+

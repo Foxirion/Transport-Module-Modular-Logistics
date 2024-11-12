@@ -1,8 +1,7 @@
 package net.foxirion.tmml.datagen;
 
 import net.foxirion.tmml.item.TMMLItems;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.data.PackOutput;
+import net.minecraft.data.DataGenerator;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
@@ -10,8 +9,8 @@ import net.minecraftforge.common.data.ExistingFileHelper;
 import static net.foxirion.tmml.init.TMML.TMMLID;
 
 public class TMMLItemModelProvider extends ItemModelProvider {
-    public TMMLItemModelProvider(PackOutput output, ExistingFileHelper existingFileHelper) {
-        super(output, TMMLID, existingFileHelper);
+    public TMMLItemModelProvider(DataGenerator generator, ExistingFileHelper existingFileHelper) {
+        super(generator, TMMLID, existingFileHelper);
     }
 
     @Override
@@ -34,6 +33,6 @@ public class TMMLItemModelProvider extends ItemModelProvider {
 
     }
     private String getItemName(Item item) {
-        return BuiltInRegistries.ITEM.getKey(item).toString().replace(TMMLID + ":", "");
+        return item.getDescriptionId().replace(TMMLID + ".", ""); // Adjusted for Forge 1.19.2 compatibility
     }
 }

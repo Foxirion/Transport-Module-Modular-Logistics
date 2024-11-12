@@ -19,7 +19,6 @@ public class TMML {
         IEventBus bus = context.getModEventBus();
         IEventBus modEventBus = context.getModEventBus();
 
-        TMMLCreativeModeTabs.CREATIVE_MODE_TABS.register(bus);
         TMMLItems.ITEMS.register(bus);
 
 //        bus.addListener(DataGenerators::gatherData);

@@ -2,15 +2,15 @@ package net.foxirion.tmml.datagen;
 
 import net.foxirion.tmml.init.TMMLCreativeModeTabs;
 import net.foxirion.tmml.item.TMMLItems;
-import net.minecraft.data.PackOutput;
+import net.minecraft.data.DataGenerator;
 import net.minecraftforge.common.data.LanguageProvider;
 
 
 import static net.foxirion.tmml.init.TMML.TMMLID;
 
 public class LangProvider extends LanguageProvider {
-    public LangProvider(PackOutput output) {
-        super(output, TMMLID, "en_us");
+    public LangProvider(DataGenerator generator) {
+        super(generator, TMMLID, "en_us");
     }
 
     @Override
@@ -31,7 +31,6 @@ public class LangProvider extends LanguageProvider {
         addItem(TMMLItems.ENTITY_TRANSPORT_MODULE, "Entity Transport Module");
 
         // Creative Tab
-        add(TMMLCreativeModeTabs.TMML_TABS, "Transport Modules: Modular Logistics");
+        add(TMMLCreativeModeTabs.TMML_TAB.getIconItem(), "Transport Modules: Modular Logistics");
     }
-
 }
