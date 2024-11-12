@@ -17,7 +17,8 @@ public class TMMLRecipeProvider extends RecipeProvider {
         this.generator = generator;
     }
 
-    protected void buildRecipes(Consumer<FinishedRecipe> recipeOutput) {
+    @Override
+    protected void buildCraftingRecipes(Consumer<FinishedRecipe> recipeOutput) {
         new TMMLCraftingRecipes(generator, recipeOutput).build();
     }
 }

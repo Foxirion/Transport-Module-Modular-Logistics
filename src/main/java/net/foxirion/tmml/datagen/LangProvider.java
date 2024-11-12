@@ -31,6 +31,6 @@ public class LangProvider extends LanguageProvider {
         addItem(TMMLItems.ENTITY_TRANSPORT_MODULE, "Entity Transport Module");
 
         // Creative Tab
-        add(TMMLCreativeModeTabs.TMML_TAB.getIconItem(), "Transport Modules: Modular Logistics");
+        add("itemGroup.tmmltab", "Transport Modules: Modular Logistics");
     }
 }

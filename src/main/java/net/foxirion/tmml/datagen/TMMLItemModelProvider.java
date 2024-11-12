@@ -5,6 +5,7 @@ import net.minecraft.data.DataGenerator;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import static net.foxirion.tmml.init.TMML.TMMLID;
 
@@ -32,7 +33,7 @@ public class TMMLItemModelProvider extends ItemModelProvider {
                 .texture("layer0", "item/" + name);
 
     }
-    private String getItemName(Item item) {
-        return item.getDescriptionId().replace(TMMLID + ".", ""); // Adjusted for Forge 1.19.2 compatibility
+    public String getItemName(Item item) {
+        return ForgeRegistries.ITEMS.getKey(item).toString().replace(TMMLID + ":", "");
     }
 }
