@@ -26,6 +26,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 
 import java.util.List;
@@ -64,11 +65,12 @@ public class FluidTransportModule extends Item {
     public InteractionResult handleFluidStore(Level level, BlockPos pos, ItemStack fluidModule, Player player) {
         BlockState blockState = level.getBlockState(pos);
         Fluid fluid = blockState.getFluidState().getType();
+        FluidState fluidState = blockState.getFluidState();
 
         // Send a message to the player if they try to pick up an unpickable fluid
-        if (fluid == Fluids.EMPTY || !level.mayInteract(player, pos) || fluid.is(TMMLTags.FluidTags.FLUID_TRANSPORT_UNPICKABLE)) {
+        if (fluid == Fluids.EMPTY || !level.mayInteract(player, pos) || fluid.isSource(fluidState)) {
             if (player != null && !level.isClientSide) {
-                player.displayClientMessage(Component.literal("This fluid cannot be picked up."), true);
+                player.displayClientMessage(Component.literal("This isn't a cannot be picked up."), true);
             }
             return InteractionResult.FAIL;
         }
@@ -117,7 +119,7 @@ public class FluidTransportModule extends Item {
             if (storedFluid.getCount() == 0) {
                 stack.remove(DataComponents.CONTAINER);
             } else {
-                itemContents.setStackInSlot(0, storedFluid);
+                storedFluid = itemContents.getStackInSlot(0);
                 stack.set(DataComponents.CONTAINER, itemContents);
             }
 
