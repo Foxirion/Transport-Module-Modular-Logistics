@@ -1,31 +1,41 @@
 package net.foxirion.tmml.item;
 
+import net.foxirion.tmml.TMML;
 import net.foxirion.tmml.item.custom.BlockTransportModule;
-import net.foxirion.tmml.item.custom.FluidTransportModule;
 import net.foxirion.tmml.item.custom.VoidBottleItem;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.item.Item;
-import net.neoforged.neoforge.registries.DeferredHolder;
-import net.neoforged.neoforge.registries.DeferredRegister;
+import net.minecraft.item.Item;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.util.Identifier;
 
 public class TMMLItems {
-    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(BuiltInRegistries.ITEM, "tmml");
+    public static Item VOID_BOTTLE = registerItem("void_bottle",
+            new VoidBottleItem(new Item.Settings()
+                    .maxCount(1)
+                    .fireproof()
+                    .food(TMMLFoodComponents.VOID_BOTTLE)
+            ));
 
-    public static final DeferredHolder<Item, Item> VOID_BOTTLE = ITEMS.register("void_bottle",
-            () -> new VoidBottleItem(new Item.Properties()
-                    .food(TMMLFoods.VOID_BOTTLE)
-                    .fireResistant()
-                    .stacksTo(1)));
+    public static Item BLOCK_TRANSPORT_MODULE = registerItem("block_transport_module",
+            new BlockTransportModule(new Item.Settings()
+                    .maxCount(1)
+    ));
 
-    public static final DeferredHolder<Item, Item> BLOCK_TRANSPORT_MODULE = ITEMS.register("block_transport_module",
-            () -> new BlockTransportModule(new Item.Properties()
-                    .stacksTo(1)));
+    public static Item FLUID_TRANSPORT_MODULE = registerItem("fluid_transport_module",
+            new Item(new Item.Settings()
+                    .maxCount(1)
+    ));
 
-    public static final DeferredHolder<Item, Item> FLUID_TRANSPORT_MODULE = ITEMS.register("fluid_transport_module",
-            () -> new FluidTransportModule(new Item.Properties()
-                    .stacksTo(1)));
+    public static Item ENTITY_TRANSPORT_MODULE = registerItem("entity_transport_module",
+            new Item(new Item.Settings()
+                    .maxCount(1)
+    ));
 
-    public static final DeferredHolder<Item, Item> ENTITY_TRANSPORT_MODULE = ITEMS.register("entity_transport_module",
-            () -> new Item(new Item.Properties()
-                    .stacksTo(1)));
+    public static Item registerItem(String name, Item item){
+        return Registry.register(Registries.ITEM, Identifier.of(TMML.TMMLID, name), item);
+    }
+
+    public static void registerTMMLItems(){
+        TMML.LOGGER.info("Registering Mod Items for" + TMML.TMMLID);
+    }
 }

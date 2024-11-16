@@ -1,162 +1,157 @@
 package net.foxirion.tmml.item.custom;
 
-import net.foxirion.tmml.init.TMMLTags;
-import net.minecraft.ChatFormatting;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.NonNullList;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.Container;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.item.component.ItemContainerContents;
-import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.foxirion.tmml.util.TMMLTags;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.ContainerComponent;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.BlockItem;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemUsageContext;
+import net.minecraft.item.tooltip.TooltipType;
+import net.minecraft.sound.BlockSoundGroup;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.text.Text;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Formatting;
+import net.minecraft.util.Hand;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.world.World;
 
+import java.awt.*;
 import java.util.List;
 
 public class BlockTransportModule extends Item {
-    public BlockTransportModule(Properties properties) {
-        super(properties.stacksTo(1));
+    public BlockTransportModule(Settings settings) {
+        super(new Settings().maxCount(1));
     }
 
     @Override
-    public InteractionResult useOn(UseOnContext context) {
-        Level level = context.getLevel();
-        BlockPos pos = context.getClickedPos();
-        Player player = context.getPlayer();
-        Direction clickedFace = context.getClickedFace();
-        ItemStack stack = context.getItemInHand();
+    public ActionResult useOnBlock(ItemUsageContext context) {
+        World world = context.getWorld();
+        BlockPos pos = context.getBlockPos();
+        PlayerEntity player = context.getPlayer();
+        Hand hand = context.getHand();
+        ItemStack stack = context.getStack();
 
-        if (player == null) return InteractionResult.FAIL;
+        if (player == null) return ActionResult.FAIL;
 
-        ItemContainerContents itemContents = stack.getOrDefault(DataComponents.CONTAINER, ItemContainerContents.EMPTY);
-        if (player.isShiftKeyDown()) {
+        ContainerComponent itemContents = stack.getOrDefault(DataComponentTypes.CONTAINER, ContainerComponent.DEFAULT);
+        if (player.isSneaking()) {
             // If module is not empty, prevent picking up another block
-            if (itemContents != ItemContainerContents.EMPTY) {
-                if (!level.isClientSide) {
-                    player.displayClientMessage(Component.literal("Module must be empty before storing another block"), true);
+            if (itemContents != ContainerComponent.DEFAULT) {
+                if (!world.isClient) {
+                    player.sendMessage(Text.literal("Module must be empty before storing another block"), true);
                 }
-                return InteractionResult.FAIL;
+                return ActionResult.FAIL;
             }
-            return handleBlockStore(level, pos, stack, player);
+            return handleBlockStore(world, pos, stack, player);
         }
-        return handleBlockPlace(level, pos, clickedFace, stack, player, context);
+        return handleBlockPlace(world, pos, stack, player, context.getSide());
     }
 
-    public InteractionResult handleBlockStore(Level level, BlockPos pos, ItemStack transportModule, Player player) {
-        BlockState blockState = level.getBlockState(pos);
+    public ActionResult handleBlockStore(World world, BlockPos pos, ItemStack transportModule, PlayerEntity player) {
+        BlockState blockState = world.getBlockState(pos);
 
         // Send a message to the player if they try to pick up an unpickable block
-        if (blockState.isAir() || !level.mayInteract(player, pos) || blockState.is(TMMLTags.BlockTags.BLOCK_TRANSPORT_UNPICKABLE)) {
-            if (player != null && !level.isClientSide) {
-                player.displayClientMessage(Component.literal("This block cannot be picked up."), true);
+        if (blockState.isAir() || !world.canPlayerModifyAt(player, pos) || blockState.isIn(TMMLTags.BlockTags.BLOCK_TRANSPORT_UNPICKABLE)) {
+            if (player != null && !world.isClient) {
+                player.sendMessage(Text.literal("This block cannot be picked up."), true);
             }
-            return InteractionResult.FAIL;
+            return ActionResult.FAIL;
         }
 
         // Create ItemStack from the block
         ItemStack blockStack = new ItemStack(blockState.getBlock().asItem());
 
         // Handle BlockEntity (NBT) data
-        BlockEntity blockEntity = level.getBlockEntity(pos);
+        BlockEntity blockEntity = world.getBlockEntity(pos);
         if (blockEntity != null) {
-            HolderLookup.Provider registries = level.registryAccess();
+            HolderLookup.Provider registries = world.registryAccess();
             CompoundTag nbt = blockEntity.saveWithFullMetadata(registries);
             CustomData blockEntityData = CustomData.of(nbt);
             // Store the BlockEntity data in the ItemStack
-            blockStack.set(DataComponents.BLOCK_ENTITY_DATA, blockEntityData);
+            blockStack.set(DataComponentTypes.BLOCK_ENTITY_DATA, blockEntityData);
         }
 
         // Store the block in the module
-        NonNullList<ItemStack> itemList = NonNullList.withSize(1, ItemStack.EMPTY);
+        List<ItemStack> itemList = List.(1, ItemStack.EMPTY);
         itemList.set(0, blockStack);
-        transportModule.set(DataComponents.CONTAINER, ItemContainerContents.fromItems(itemList));
+        transportModule.set(DataComponentTypes.CONTAINER, ContainerComponent.fromStacks(itemList));
 
         // Remove the block from the world and prevent items from dropping if container
         if (blockEntity instanceof Container container) {
             container.clearContent();
         }
-        level.removeBlock(pos, false);
+        world.removeBlock(pos, false);
 
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return ActionResult.success(world.isClient());
     }
 
-    public InteractionResult handleBlockPlace(Level level, BlockPos pos, Direction clickedFace, ItemStack stack, Player player, UseOnContext context) {
+    public ActionResult handleBlockPlace(World world, BlockPos pos, ItemStack stack, PlayerEntity player, Direction clickedFace) {
         BlockPos placePos = pos.relative(clickedFace);
 
-        if (!level.mayInteract(player, placePos)) {
-            return InteractionResult.PASS;
+        if (!world.mayInteract(player, placePos)) {
+            return ActionResult.PASS;
         }
 
         // Get the stored block
-        ItemContainerContents itemContents = stack.getOrDefault(DataComponents.CONTAINER, ItemContainerContents.EMPTY);
-        if (itemContents == ItemContainerContents.EMPTY) {
-            return InteractionResult.PASS;
+        ContainerComponent itemContents = stack.getOrDefault(DataComponentTypes.CONTAINER, ContainerComponent.DEFAULT);
+        if (itemContents == ContainerComponent.DEFAULT) {
+            return ActionResult.PASS;
         }
 
         try {
-            ItemStack storedBlock = itemContents.getStackInSlot(0);
+            ItemStack storedBlock = getStackInSlot(0);
             if (storedBlock.isEmpty() || !(storedBlock.getItem() instanceof BlockItem blockItem)) {
-                return InteractionResult.PASS;
+                return ActionResult.PASS;
             }
 
             // Get the NBT data before placing
-            CustomData blockEntityData = storedBlock.get(DataComponents.BLOCK_ENTITY_DATA);
+            CustomData blockEntityData = storedBlock.get(DataComponentTypes.BLOCK_ENTITY_DATA);
             BlockPlaceContext blockPlaceContext = new BlockPlaceContext(context);
-            InteractionResult result = InteractionResult.SUCCESS;
-            if (level.getBlockState(placePos).canBeReplaced()) {
-                BlockState blockState = blockItem.getBlock().getStateForPlacement(blockPlaceContext);
-                level.removeBlock(placePos, false);
-                level.setBlock(placePos, blockState, 3);
-                SoundType soundtype = blockState.getSoundType();
-                level.playSound(null, placePos, soundtype.getPlaceSound(), SoundSource.BLOCKS, (soundtype.getVolume() + 1.0F) / 2.0F, soundtype.getPitch() * 0.8F);
+            ActionResult result = ActionResult.SUCCESS;
+            if (world.getBlockState(placePos).isReplaceable()) {
+                BlockState blockState = blockItem.getBlock().getPlacementState(blockPlaceContext);
+                world.removeBlock(placePos, false);
+                world.block(placePos, blockState, 3);
+                BlockSoundGroup soundtype = blockState.getSoundGroup();
+                world.playSound(null, placePos, soundtype.getPlaceSound(), SoundCategory.BLOCKS, (soundtype.getVolume() + 1.0F) / 2.0F, soundtype.getPitch() * 0.8F);
             } else {
                 result = blockItem.place(blockPlaceContext);
             }
 
-            BlockEntity blockEntity = level.getBlockEntity(placePos);
+            BlockEntity blockEntity = world.getBlockEntity(placePos);
             if (blockEntity != null) {
                 CompoundTag nbt = blockEntityData.copyTag();
-                HolderLookup.Provider registries = level.registryAccess();
+                HolderLookup.Provider registries = world.registryAccess();
                 blockEntity.loadWithComponents(nbt, registries);
                 blockEntity.setChanged();
-                level.sendBlockUpdated(placePos, blockEntity.getBlockState(), blockEntity.getBlockState(), 3);
+                world.sendBlockUpdated(placePos, blockEntity.getBlockState(), blockEntity.getBlockState(), 3);
             }
 
             // Clear the module
-            stack.remove(DataComponents.CONTAINER);
+            stack.remove(DataComponentTypes.CONTAINER);
 
             return result;
         } catch (UnsupportedOperationException e) {
-            return InteractionResult.PASS;
+            return ActionResult.PASS;
         }
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        ItemContainerContents itemContents = stack.getOrDefault(DataComponents.CONTAINER, ItemContainerContents.EMPTY);
-        if (itemContents != ItemContainerContents.EMPTY) {
+    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
+        ContainerComponent itemContents = stack.getOrDefault(DataComponentTypes.CONTAINER, ContainerComponent.DEFAULT);
+        if (itemContents != ContainerComponent.DEFAULT) {
             try {
-                ItemStack storedStack = itemContents.getStackInSlot(0);
+                ItemStack storedStack = itemContents.getStack(0);
                 if (!storedStack.isEmpty()) {
-                    tooltipComponents.add(storedStack.getDisplayName());
-                    if (storedStack.get(DataComponents.BLOCK_ENTITY_DATA) != null) {
-                        tooltipComponents.add(Component.literal("Contains Block Data").withStyle(ChatFormatting.GRAY));
+                    tooltip.add(storedStack.getName());
+                    if (storedStack.get(DataComponentTypes.BLOCK_ENTITY_DATA) != null) {
+                        tooltip.add(Text.translatable("Contains Block Data").formatted(Formatting.GRAY));
                     }
                     return;
                 }
@@ -164,6 +159,6 @@ public class BlockTransportModule extends Item {
                 // Handle the case where slot 0 doesn't exist
             }
         }
-        tooltipComponents.add(Component.literal("[Empty]"));
+        tooltip.add(Text.translatable("[Empty]"));
     }
 }

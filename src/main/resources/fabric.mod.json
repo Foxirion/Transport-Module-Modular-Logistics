@@ -1,0 +1,40 @@
+{
+	"schemaVersion": 1,
+	"id": "tmml",
+	"version": "${version}",
+	"name": "Transport Modules: Modular Logistics",
+	"description": "A minecraft mod that uses the power of the black holes in some little devices to transport blocks/containers/liquids/entities, made by Foxirion.",
+	"authors": [
+		"Foxirion"
+	],
+	"contact": {
+		"homepage": "https://www.curseforge.com/members/foxirion/projects",
+		"sources": "https://github.com/Foxirion/Transport-Module-Modular-Logistics"
+	},
+	"license": "MIT",
+	"icon": "assets/tmml/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+          "net.foxirion.tmml.TMML"
+		],
+		"fabric-datagen": [
+			"net.foxirion.tmml.TMMLDataGenerator"
+		],
+		"client": [
+			"net.foxirion.tmml.TMMLClient"
+		]
+	},
+	"mixins": [
+		"tmml.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.16.9",
+		"minecraft": "~1.21.1",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}
