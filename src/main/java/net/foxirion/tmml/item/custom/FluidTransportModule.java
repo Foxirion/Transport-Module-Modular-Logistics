@@ -1,95 +1,97 @@
 package net.foxirion.tmml.item.custom;
 
-import net.foxirion.tmml.init.TMMLTags;
+import net.foxirion.tmml.init.TMMLDataComponents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.tags.FluidTags;
-import net.minecraft.world.Container;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.BlockHitResult;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.fluids.SimpleFluidContent;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
 
 import java.util.List;
 
-public class FluidTransportModule extends Item {
-    private static final int MAX_FLUID_CAPACITY = 10;
+public class FluidTransportModule extends Item implements IFluidHandlerItem {
+    public static final int MAX_FLUID_CAPACITY = 1000;
+    public ItemStack container = ItemStack.EMPTY;
 
     public FluidTransportModule(Properties properties) {
         super(properties.stacksTo(1));
     }
 
     @Override
-    public InteractionResult useOn(UseOnContext context) {
-        Level level = context.getLevel();
-        BlockPos pos = context.getClickedPos();
-        Player player = context.getPlayer();
-        Direction clickedFace = context.getClickedFace();
-        ItemStack stack = context.getItemInHand();
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+        ItemStack itemstack = player.getItemInHand(hand);
+        BlockHitResult blockhitresult = getPlayerPOVHitResult(level, player, ClipContext.Fluid.SOURCE_ONLY);
+        BlockPos blockpos = blockhitresult.getBlockPos();
 
-        if (player == null) return InteractionResult.FAIL;
-
-        ItemContainerContents itemContents = stack.getOrDefault(DataComponents.CONTAINER, ItemContainerContents.EMPTY);
-        if (player.isShiftKeyDown()) {
-            // If module is not empty, prevent picking up another fluid
-            if (itemContents != ItemContainerContents.EMPTY && itemContents.getStackInSlot(0).getCount() >= MAX_FLUID_CAPACITY) {
-                if (!level.isClientSide) {
-                    player.displayClientMessage(Component.literal("Module is full, please empty it before storing another fluid."), true);
-                }
-                return InteractionResult.FAIL;
-            }
-            return handleFluidStore(level, pos, stack, player);
-        }
-        return handleFluidPlace(level, pos, clickedFace, stack, player, context);
+        return handleFluidStore(level, blockpos, itemstack, player);
     }
 
-    public InteractionResult handleFluidStore(Level level, BlockPos pos, ItemStack fluidModule, Player player) {
+    public InteractionResultHolder handleFluidStore(Level level, BlockPos pos, ItemStack itemStack, Player player) {
         BlockState blockState = level.getBlockState(pos);
-        Fluid fluid = blockState.getFluidState().getType();
         FluidState fluidState = blockState.getFluidState();
 
-        // Send a message to the player if they try to pick up an unpickable fluid
-        if (fluid == Fluids.EMPTY || !level.mayInteract(player, pos) || fluid.isSource(fluidState)) {
-            if (player != null && !level.isClientSide) {
-                player.displayClientMessage(Component.literal("This isn't a cannot be picked up."), true);
-            }
-            return InteractionResult.FAIL;
+        if (fluidState.isEmpty()) {
+            return InteractionResultHolder.fail(itemStack);
         }
 
-        // Create ItemStack from the fluid
-        ItemStack fluidStack = new ItemStack(fluid.getBucket().asItem());
+        // Send a message to the player if they try to pick up an unpickable fluid
+        if (!fluidState.isSource()) {
+            if (!level.isClientSide) {
+                player.displayClientMessage(Component.literal("Can only pick up source blocks."), true);
+            }
+            return InteractionResultHolder.fail(itemStack);
+        }
 
         // Store the fluid in the module
-        NonNullList<ItemStack> itemList = NonNullList.withSize(1, fluidStack);
-        ItemContainerContents itemContents = ItemContainerContents.fromItems(itemList);
-        fluidModule.set(DataComponents.CONTAINER, itemContents);
+        FluidStack fluidToStore = new FluidStack(fluidState.getType(), MAX_FLUID_CAPACITY);
 
-        // Remove the fluid from the world and prevent items from dropping if container
-        if (blockState.getBlock() instanceof Container container) {
-            container.clearContent();
+
+        // Actually fill the handler
+        int filled = fill(fluidToStore, IFluidHandler.FluidAction.SIMULATE);
+        if (filled > 0) {
+            fill(fluidToStore, IFluidHandler.FluidAction.EXECUTE);
+
+            // Remove the fluid from the world
+            level.setBlock(pos, Blocks.AIR.defaultBlockState(), 11);
+
+            if (!level.isClientSide) {
+                player.displayClientMessage(Component.literal("Picked up " + fluidToStore.getHoverName()), true);
+            }
         }
-        level.removeBlock(pos, false);
 
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResultHolder.sidedSuccess(itemStack, level.isClientSide);
+    }
+
+    private FluidStack getStoredFluid(ItemStack stack) {
+        SimpleFluidContent fluidContent = stack.get(TMMLDataComponents.FLUID_CONTENT);
+        if (fluidContent != null && !fluidContent.isEmpty()) {
+            return fluidContent.copy();
+        }
+        return FluidStack.EMPTY;
     }
 
     public InteractionResult handleFluidPlace(Level level, BlockPos pos, Direction clickedFace, ItemStack stack, Player player, UseOnContext context) {
@@ -131,19 +133,107 @@ public class FluidTransportModule extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        ItemContainerContents itemContents = stack.getOrDefault(DataComponents.CONTAINER, ItemContainerContents.EMPTY);
-        if (itemContents != ItemContainerContents.EMPTY) {
-            try {
-                ItemStack storedStack = itemContents.getStackInSlot(0);
-                if (!storedStack.isEmpty()) {
-                    tooltipComponents.add(storedStack.getDisplayName());
-                    tooltipComponents.add(Component.literal("Capacity: " + itemContents.getStackInSlot(0).getCount() + "/" + MAX_FLUID_CAPACITY).withStyle(ChatFormatting.GRAY));
-                    return;
-                }
-            } catch (UnsupportedOperationException e) {
-                // Handle the case where slot 0 doesn't exist
+        //if (!getContainer().isEmpty()) {
+        try {
+            FluidStack fluidStack = new FluidStack(getStoredFluid(stack).getFluid(), MAX_FLUID_CAPACITY);
+            if (!fluidStack.isEmpty()) {
+                tooltipComponents.add(fluidStack.getHoverName());
+                tooltipComponents.add(Component.literal("Capacity: " + fluidStack.getAmount() + "/" + MAX_FLUID_CAPACITY).withStyle(ChatFormatting.GRAY));
+                return;
             }
+        } catch (UnsupportedOperationException e) {
+            // Handle the case where fluid doesn't exist
         }
-        tooltipComponents.add(Component.literal("[Empty]"));
+        //}
+        //tooltipComponents.add(Component.literal("[Empty]"));
+    }
+
+    @Override
+    public ItemStack getContainer() {
+        return container;
+    }
+
+    @Override
+    public int getTanks() {
+        return 1;
+    }
+
+    @Override
+    public FluidStack getFluidInTank(int i) {
+        return getStoredFluid(getContainer());
+    }
+
+    @Override
+    public int getTankCapacity(int i) {
+        return MAX_FLUID_CAPACITY;
+    }
+
+    @Override
+    public boolean isFluidValid(int i, FluidStack fluidStack) {
+        return true;
+    }
+
+    @Override
+    public int fill(FluidStack fluidStack, FluidAction fluidAction) {
+        if (fluidStack.isEmpty() || !isFluidValid(0, fluidStack)) {
+            return 0;
+        }
+
+        ItemStack container = getContainer();
+        FluidStack storedFluid = getStoredFluid(container);
+
+        if (fluidAction.simulate()) {
+            if (storedFluid.isEmpty()) {
+                return Math.min(MAX_FLUID_CAPACITY, fluidStack.getAmount());
+            }
+            if (!storedFluid.is(fluidStack.getFluidType())) {
+                return 0;
+            }
+            return Math.min(MAX_FLUID_CAPACITY - storedFluid.getAmount(), fluidStack.getAmount());
+        }
+
+        if (storedFluid.isEmpty()) {
+            storedFluid = new FluidStack(fluidStack.getFluid(), Math.min(MAX_FLUID_CAPACITY, fluidStack.getAmount()));
+            return storedFluid.getAmount();
+        }
+
+        if (!storedFluid.is(fluidStack.getFluidType())) {
+            return 0;
+        }
+
+        int filled = MAX_FLUID_CAPACITY - storedFluid.getAmount();
+        if (fluidStack.getAmount() < filled) {
+            storedFluid.grow(fluidStack.getAmount());
+            filled = fluidStack.getAmount();
+        } else {
+            storedFluid.setAmount(MAX_FLUID_CAPACITY);
+        }
+        return filled;
+    }
+
+    @Override
+    public FluidStack drain(FluidStack fluidStack, FluidAction fluidAction) {
+        ItemStack container = getContainer();
+        FluidStack storedFluid = getStoredFluid(container);
+
+        if (fluidStack.isEmpty() || !storedFluid.is(fluidStack.getFluidType())) {
+            return FluidStack.EMPTY;
+        }
+        return drain(fluidStack.getAmount(), fluidAction);
+    }
+
+    @Override
+    public FluidStack drain(int maxDrain, FluidAction fluidAction) {
+        ItemStack container = getContainer();
+        FluidStack storedFluid = getStoredFluid(container);
+
+        if (storedFluid.getAmount() < maxDrain) {
+            maxDrain = storedFluid.getAmount();
+        }
+        FluidStack stack = new FluidStack(storedFluid.getFluid(), maxDrain);
+        if (fluidAction.execute() && maxDrain > 0) {
+            storedFluid.shrink(maxDrain);
+        }
+        return stack;
     }
 }
