@@ -78,7 +78,7 @@ public class BlockTransportModule extends Item {
         }
 
         // Store the block in the module
-        List<ItemStack> itemList = List.(1, ItemStack.EMPTY);
+        List<ItemStack> itemList = List.of(1, ItemStack.EMPTY);
         itemList.set(0, blockStack);
         transportModule.set(DataComponentTypes.CONTAINER, ContainerComponent.fromStacks(itemList));
 
