@@ -3,29 +3,31 @@ package net.foxirion.tmml.item.custom;
 import net.foxirion.tmml.util.TMMLTags;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.ChestBlockEntity;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ContainerComponent;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsageContext;
+import net.minecraft.inventory.Inventory;
+import net.minecraft.inventory.SidedInventory;
+import net.minecraft.item.*;
 import net.minecraft.item.tooltip.TooltipType;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 
-import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class BlockTransportModule extends Item {
-    public BlockTransportModule(Settings settings) {
+    public BlockTransportModule() {
         super(new Settings().maxCount(1));
     }
 
@@ -34,7 +36,6 @@ public class BlockTransportModule extends Item {
         World world = context.getWorld();
         BlockPos pos = context.getBlockPos();
         PlayerEntity player = context.getPlayer();
-        Hand hand = context.getHand();
         ItemStack stack = context.getStack();
 
         if (player == null) return ActionResult.FAIL;
@@ -50,7 +51,7 @@ public class BlockTransportModule extends Item {
             }
             return handleBlockStore(world, pos, stack, player);
         }
-        return handleBlockPlace(world, pos, stack, player, context.getSide());
+        return handleBlockPlace(world, pos, stack, player, context);
     }
 
     public ActionResult handleBlockStore(World world, BlockPos pos, ItemStack transportModule, PlayerEntity player) {
@@ -70,31 +71,32 @@ public class BlockTransportModule extends Item {
         // Handle BlockEntity (NBT) data
         BlockEntity blockEntity = world.getBlockEntity(pos);
         if (blockEntity != null) {
-            HolderLookup.Provider registries = world.registryAccess();
-            CompoundTag nbt = blockEntity.saveWithFullMetadata(registries);
-            CustomData blockEntityData = CustomData.of(nbt);
+            RegistryWrapper.WrapperLookup registries = world.getRegistryManager();
+            NbtCompound nbt = blockEntity.createComponentlessNbtWithIdentifyingData(registries);
+            NbtComponent blockEntityData = NbtComponent.of(nbt);
             // Store the BlockEntity data in the ItemStack
             blockStack.set(DataComponentTypes.BLOCK_ENTITY_DATA, blockEntityData);
         }
 
         // Store the block in the module
-        List<ItemStack> itemList = List.of(1, ItemStack.EMPTY);
-        itemList.set(0, blockStack);
+        List<ItemStack> itemList = new ArrayList<>();
+        itemList.add(blockStack);
         transportModule.set(DataComponentTypes.CONTAINER, ContainerComponent.fromStacks(itemList));
 
         // Remove the block from the world and prevent items from dropping if container
-        if (blockEntity instanceof Container container) {
-            container.clearContent();
+        if (blockEntity instanceof Inventory container) {
+            container.clear();
         }
         world.removeBlock(pos, false);
 
         return ActionResult.success(world.isClient());
     }
 
-    public ActionResult handleBlockPlace(World world, BlockPos pos, ItemStack stack, PlayerEntity player, Direction clickedFace) {
-        BlockPos placePos = pos.relative(clickedFace);
+    public ActionResult handleBlockPlace(World world, BlockPos pos, ItemStack stack, PlayerEntity player, ItemUsageContext context) {
+        Direction clickedFace = context.getSide();
+        BlockPos placePos = pos.offset(clickedFace);
 
-        if (!world.mayInteract(player, placePos)) {
+        if (!world.canPlayerModifyAt(player, placePos)) {
             return ActionResult.PASS;
         }
 
@@ -105,19 +107,19 @@ public class BlockTransportModule extends Item {
         }
 
         try {
-            ItemStack storedBlock = getStackInSlot(0);
+            ItemStack storedBlock = itemContents.copyFirstStack();
             if (storedBlock.isEmpty() || !(storedBlock.getItem() instanceof BlockItem blockItem)) {
                 return ActionResult.PASS;
             }
 
             // Get the NBT data before placing
-            CustomData blockEntityData = storedBlock.get(DataComponentTypes.BLOCK_ENTITY_DATA);
-            BlockPlaceContext blockPlaceContext = new BlockPlaceContext(context);
+            NbtComponent blockEntityData = storedBlock.get(DataComponentTypes.BLOCK_ENTITY_DATA);
+            ItemPlacementContext blockPlaceContext = new ItemPlacementContext(context);
             ActionResult result = ActionResult.SUCCESS;
             if (world.getBlockState(placePos).isReplaceable()) {
                 BlockState blockState = blockItem.getBlock().getPlacementState(blockPlaceContext);
                 world.removeBlock(placePos, false);
-                world.block(placePos, blockState, 3);
+                world.setBlockState(placePos, blockState, 3);
                 BlockSoundGroup soundtype = blockState.getSoundGroup();
                 world.playSound(null, placePos, soundtype.getPlaceSound(), SoundCategory.BLOCKS, (soundtype.getVolume() + 1.0F) / 2.0F, soundtype.getPitch() * 0.8F);
             } else {
@@ -126,11 +128,11 @@ public class BlockTransportModule extends Item {
 
             BlockEntity blockEntity = world.getBlockEntity(placePos);
             if (blockEntity != null) {
-                CompoundTag nbt = blockEntityData.copyTag();
-                HolderLookup.Provider registries = world.registryAccess();
-                blockEntity.loadWithComponents(nbt, registries);
-                blockEntity.setChanged();
-                world.sendBlockUpdated(placePos, blockEntity.getBlockState(), blockEntity.getBlockState(), 3);
+                NbtCompound nbt = blockEntityData.copyNbt();
+                RegistryWrapper.WrapperLookup registries = world.getRegistryManager();
+                blockEntity.readComponentlessNbt(nbt, registries);
+                blockEntity.toUpdatePacket();
+                world.addBlockEntity(blockEntity);
             }
 
             // Clear the module
@@ -147,7 +149,7 @@ public class BlockTransportModule extends Item {
         ContainerComponent itemContents = stack.getOrDefault(DataComponentTypes.CONTAINER, ContainerComponent.DEFAULT);
         if (itemContents != ContainerComponent.DEFAULT) {
             try {
-                ItemStack storedStack = itemContents.getStack(0);
+                ItemStack storedStack = itemContents.copyFirstStack();
                 if (!storedStack.isEmpty()) {
                     tooltip.add(storedStack.getName());
                     if (storedStack.get(DataComponentTypes.BLOCK_ENTITY_DATA) != null) {

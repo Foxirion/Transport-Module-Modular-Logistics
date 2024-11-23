@@ -16,10 +16,7 @@ public class TMMLItems {
                     .food(TMMLFoodComponents.VOID_BOTTLE)
             ));
 
-    public static Item BLOCK_TRANSPORT_MODULE = registerItem("block_transport_module",
-            new BlockTransportModule(new Item.Settings()
-                    .maxCount(1)
-    ));
+    public static Item BLOCK_TRANSPORT_MODULE = registerItem("block_transport_module", new BlockTransportModule());
 
     public static Item FLUID_TRANSPORT_MODULE = registerItem("fluid_transport_module",
             new Item(new Item.Settings()
