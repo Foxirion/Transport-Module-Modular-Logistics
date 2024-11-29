@@ -22,7 +22,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import static net.foxirion.tmml.init.TMML.TMMLID;
 
 @EventBusSubscriber(modid = TMMLID, bus = EventBusSubscriber.Bus.GAME)
-public class ModEvent {
+public class TMMLGameEventBus {
     @SubscribeEvent
     public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
         Level level = event.getLevel();

@@ -5,6 +5,7 @@ import net.foxirion.tmml.item.custom.FluidTransportModule;
 import net.foxirion.tmml.item.custom.VoidBottleItem;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
