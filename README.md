@@ -48,7 +48,11 @@
 
 ## 🗞️ Transport Modules: Modular Logistics News
 
-Release Version 1.0.0 RELEASED!
+Release Version 1.0.0 RELEASED! (on NeoForge: 1.21.1 and 1.21.3 and Forge 1.20.1 and 1.19.2 and Fabric 1.21.1)
+
+Release Version 2.0.0 RELEASED! (on NeoForge: 1.21.1)
+
+(for suggestions for other minecraft versions you can tell us in curseforge comments and in the reddit post about this)
 
 ## ℹ️ About
 
@@ -65,7 +69,7 @@ My modular system offers flexible and efficient transport solutions.
 <td style="padding: 10px; text-align: left; border: none;">Collect a little bit of void from an end portal or a gateway and make your own pocket black whole that can be used in transport modules crafting.</td>
 <tr>
 <td style="padding: 10px; text-align: left; border: none;"><strong>💾 Transport Modules</strong></td>
-<td style="padding: 10px; text-align: left; border: none;">Discover these usefull items that contain a little black hole that can storage a large gama of blocks to make the transportation easier.</td>
+<td style="padding: 10px; text-align: left; border: none;">Discover these usefull items that contain a little black hole that can storage a large gama of blocks and fluids to make the transportation easier.</td>
 </tr>
 </tbody>
 </table>
@@ -73,7 +77,7 @@ My modular system offers flexible and efficient transport solutions.
 ## 🗓️ Planned Updates
 
   **_Upcoming Features:_**
-  - **New Transport modules**: New modules used to transport more than items(maybe fluids or even entities).
+  - **New Transport modules**: New modules used to transport more than blocks and fluids(maybe even entities).
 
 ## 📜 License
 
