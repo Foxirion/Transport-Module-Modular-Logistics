@@ -19,7 +19,7 @@
           "net.foxirion.tmml.TMML"
 		],
 		"fabric-datagen": [
-			"net.foxirion.tmml.TMMLDataGenerator"
+          "net.foxirion.tmml.datagen.TMMLDataGenerator"
 		],
 		"client": [
 			"net.foxirion.tmml.TMMLClient"

@@ -1,8 +1,7 @@
-package net.foxirion.tmml;
+package net.foxirion.tmml.datagen;
 
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
-import net.foxirion.tmml.datagen.TMMLBlockTagsProvider;
 
 public class TMMLDataGenerator implements DataGeneratorEntrypoint {
 	@Override
@@ -10,5 +9,7 @@ public class TMMLDataGenerator implements DataGeneratorEntrypoint {
 		FabricDataGenerator.Pack pack = fabricDataGenerator.createPack();
 
 		pack.addProvider(TMMLBlockTagsProvider::new);
+		pack.addProvider(TMMLItemModelProvider::new);
+		pack.addProvider(LangProvider::new);
 	}
 }
