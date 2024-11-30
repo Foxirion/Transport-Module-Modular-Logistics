@@ -20,6 +20,7 @@ public class TMMLItemGroups {
                     .entries((displayContext, entries) -> {
                         entries.add(TMMLItems.VOID_BOTTLE);
                         entries.add(TMMLItems.BLOCK_TRANSPORT_MODULE);
+                        entries.add(TMMLItems.FLUID_TRANSPORT_MODULE);
                     }).build());
 
     public static void registerTMMLItemGroups() {

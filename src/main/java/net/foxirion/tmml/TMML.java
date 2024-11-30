@@ -3,6 +3,7 @@ package net.foxirion.tmml;
 import net.fabricmc.api.ModInitializer;
 
 import net.foxirion.tmml.event.ModEvent;
+import net.foxirion.tmml.init.TMMLDataComponents;
 import net.foxirion.tmml.item.TMMLItemGroups;
 import net.foxirion.tmml.item.TMMLItems;
 import net.minecraft.util.Identifier;
