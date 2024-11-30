@@ -1,11 +1,15 @@
 package net.foxirion.tmml.item.custom;
 
+import net.foxirion.tmml.init.SimpleFluidContent;
+import net.foxirion.tmml.init.TMMLDataComponents;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.FluidBlock;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
+import net.minecraft.item.FluidModificationItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
@@ -19,10 +23,12 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public class FluidTransportModule extends Item {
+    public static final int BUCKET_VOLUME = 1000;
     public static final int MAX_FLUID_CAPACITY = 10000;
 
     public FluidTransportModule() {
@@ -42,62 +48,62 @@ public class FluidTransportModule extends Item {
     public TypedActionResult<ItemStack> handleFluidInteraction(World level, BlockPos pos, Direction direction, ItemStack stack, PlayerEntity player) {
         BlockState blockState = level.getBlockState(pos);
         FluidState fluidState = blockState.getFluidState();
-        Fluid existingFluid = getStoredFluid(stack);
+        SimpleFluidContent.FluidStack existingFluid = getStoredFluid(stack);
         boolean isShiftKeyDown = player.isSneaking();
-        boolean isWaterloggable = blockState.hasProperty(Properties.WATERLOGGED);
+        boolean isWaterloggable = blockState.get(Properties.WATERLOGGED);
 
         // Placing fluid
         if (!existingFluid.isEmpty()) {
             // Shift-click partial fluid pickup logic (unchanged)
             if (isShiftKeyDown && existingFluid.getAmount() < MAX_FLUID_CAPACITY) {
                 // Check if block clicked is a fluid source and matches current fluid
-                if (!fluidState.isEmpty() && fluidState.isSource() &&
-                        (existingFluid.isEmpty() || existingFluid.getFluid() == fluidState.getType())) {
+                if (!fluidState.isEmpty() && !fluidState.isStill() &&
+                        (existingFluid.isEmpty() || existingFluid.getFluid() == fluidState.getFluid())) {
 
                     // Calculate how much fluid can be added
                     int spaceRemaining = MAX_FLUID_CAPACITY - existingFluid.getAmount();
-                    int fluidToAdd = Math.min(spaceRemaining, FluidType.BUCKET_VOLUME);
+                    int fluidToAdd = Math.min(spaceRemaining, BUCKET_VOLUME);
 
-                    FluidStack updatedFluid = existingFluid.copy();
-                    updatedFluid.grow(fluidToAdd);
+                    SimpleFluidContent.FluidStack updatedFluid = existingFluid.copy();
+                    //updatedFluid.grow(fluidToAdd);
 
                     // Update fluid in item
                     stack.set(TMMLDataComponents.FLUID_CONTENT, SimpleFluidContent.copyOf(updatedFluid));
 
                     // Remove fluid from world
-                    level.setBlock(pos, Blocks.AIR.defaultBlockState(), 11);
+                    level.setBlockState(pos, Blocks.AIR.getDefaultState(), 11);
 
                     if (!level.isClient) {
                         player.sendMessage(Text.literal("Picked up additional " + updatedFluid.getHoverName().getString()), true);
                     }
 
-                    return InteractionResult.SUCCESS;
+                    return TypedActionResult.success(stack);
                 }
 
                 // If can't pick up, inform player
                 if (!level.isClient) {
                     player.sendMessage(Text.literal("Cannot pick up fluid"), true);
                 }
-                return InteractionResult.FAIL;
+                return TypedActionResult.fail(stack);
             }
 
             // Normal fluid placing logic
-            if (existingFluid.getAmount() < FluidType.BUCKET_VOLUME) {
+            if (existingFluid.getAmount() < BUCKET_VOLUME) {
                 if (!level.isClient) {
-                    player.sendMessage(Text.literal("Not enough fluid to place (Need " + FluidType.BUCKET_VOLUME + " mb)"), true);
+                    player.sendMessage(Text.literal("Not enough fluid to place (Need " + BUCKET_VOLUME + " mb)"), true);
                 }
-                return InteractionResult.FAIL;
+                return TypedActionResult.fail(stack);
             }
 
             // Check for waterloggable block first
             if (isWaterloggable && existingFluid.getFluid() == Fluids.WATER) {
                 // Waterlog the block
-                BlockState updatedState = blockState.setValue(BlockStateProperties.WATERLOGGED, true);
-                level.setBlock(pos, updatedState, 11);
+                //BlockState updatedState = blockState.setValue(Properties.WATERLOGGED, true);
+                //level.setBlockState(pos, updatedState, 11);
 
                 // Reduce fluid amount
-                FluidStack updatedFluid = existingFluid.copy();
-                updatedFluid.shrink(FluidType.BUCKET_VOLUME);
+                SimpleFluidContent.FluidStack updatedFluid = existingFluid.copy();
+                //updatedFluid.shrink(BUCKET_VOLUME);
 
                 // Update fluid content
                 if (updatedFluid.isEmpty()) {
@@ -106,22 +112,22 @@ public class FluidTransportModule extends Item {
                     stack.set(TMMLDataComponents.FLUID_CONTENT, SimpleFluidContent.copyOf(updatedFluid));
                 }
 
-                return InteractionResult.SUCCESS;
+                return TypedActionResult.success(stack);
             }
 
             // Original fluid placement logic
-            BlockPos placePos = blockState.canBeReplaced(existingFluid.getFluid()) ? pos : pos.relative(direction);
+            BlockPos placePos = blockState.canBucketPlace(existingFluid.getFluid()) ? pos : pos.offset(direction);
             BlockState targetBlockState = level.getBlockState(placePos);
 
             // Check if the target block can be replaced
-            if (targetBlockState.canBeReplaced(existingFluid.getFluid())) {
+            if (targetBlockState.canBucketPlace(existingFluid.getFluid())) {
                 // Try to place fluid without destroying existing blocks
                 if (canPlaceFluid(level, placePos, targetBlockState, existingFluid.getFluid())) {
-                    level.setBlock(placePos, existingFluid.getFluid().defaultFluidState().createLegacyBlock(), 11);
+                    level.setBlockState(placePos, existingFluid.getFluid().getDefaultState().getBlockState(), 11);
 
                     // Reduce fluid amount
-                    FluidStack updatedFluid = existingFluid.copy();
-                    updatedFluid.shrink(FluidType.BUCKET_VOLUME);
+                    SimpleFluidContent.FluidStack updatedFluid = existingFluid.copy();
+                    //updatedFluid.shrink(BUCKET_VOLUME);
 
                     // Update fluid content
                     if (updatedFluid.isEmpty()) {
@@ -142,24 +148,24 @@ public class FluidTransportModule extends Item {
         }
 
         // Picking up fluid
-        if (!fluidState.isEmpty() && fluidState.isSource()) {
+        if (!fluidState.isEmpty() && !fluidState.isStill()) {
             // Check for waterlogged block
-            if (isWaterloggable && fluidState.getType() == Fluids.WATER) {
+            if (isWaterloggable && fluidState.getFluid() == Fluids.WATER) {
                 // Create fluid stack
-                FluidStack fluidToStore = new FluidStack(fluidState.getType(), FluidType.BUCKET_VOLUME);
+                SimpleFluidContent.FluidStack fluidToStore = new SimpleFluidContent.FluidStack(fluidState.getFluid(), BUCKET_VOLUME);
                 SimpleFluidContent fluidContent = SimpleFluidContent.copyOf(fluidToStore);
                 stack.set(TMMLDataComponents.FLUID_CONTENT, fluidContent);
 
                 // Remove water from waterlogged state, but keep the block
-                BlockState updatedState = blockState.setValue(BlockStateProperties.WATERLOGGED, false);
-                level.setBlock(pos, updatedState, 11);
+/*                BlockState updatedState = blockState.setValue(Properties.WATERLOGGED, false);
+                level.setBlockState(pos, updatedState, 11);*/
 
                 return TypedActionResult.success(stack);
             }
 
             // Original fluid pickup logic
             if (existingFluid.isEmpty()) {
-                FluidStack fluidToStore = new FluidStack(fluidState.getType(), FluidType.BUCKET_VOLUME);
+                SimpleFluidContent.FluidStack fluidToStore = new SimpleFluidContent.FluidStack(fluidState.getFluid(), BUCKET_VOLUME);
                 SimpleFluidContent fluidContent = SimpleFluidContent.copyOf(fluidToStore);
                 stack.set(TMMLDataComponents.FLUID_CONTENT, fluidContent);
 
@@ -167,46 +173,46 @@ public class FluidTransportModule extends Item {
                 level.setBlockState(pos, Blocks.AIR.getDefaultState(), 11);
 
                 if (!level.isClient) {
-                    player.sendMessage(Text.literal("Picked up " + fluidToStore.getHoverName().getString()), true);
+                    player.sendMessage(Text.literal("Picked up " + fluidToStore), true);
                 }
 
-                return InteractionResult.SUCCESS;
+                return TypedActionResult.success(stack);
             } else {
                 if (!level.isClient) {
                     player.sendMessage(Text.literal("Cannot pick up fluid. Container is not empty."), true);
                 }
-                return InteractionResult.FAIL;
+                return TypedActionResult.fail(stack);
             }
         }
 
-        return ActionResult.FAIL;
+        return TypedActionResult.fail(stack);
     }
 
     public boolean canPlaceFluid(World level, BlockPos pos, BlockState blockState, Fluid fluid) {
         // Check if the block can be replaced
-        if (blockState.canBeReplaced(fluid)) {
-            if (blockState.getBlock() instanceof LiquidBlockContainer) {
-                LiquidBlockContainer container = (LiquidBlockContainer) blockState.getBlock();
-                return container.canPlaceLiquid(null, level, pos, blockState, fluid);
-            }
+        if (blockState.canBucketPlace(fluid)) {
+/*            if (blockState.getBlock() instanceof FluidBlock) {
+                FluidBlock container = (FluidBlock) blockState.getBlock();
+                return container.(null, level, pos, blockState, fluid);
+            }*/
             return true;
         }
         return false;
     }
 
-    public Fluids getStoredFluid(ItemStack stack) {
+    public SimpleFluidContent.FluidStack getStoredFluid(ItemStack stack) {
         SimpleFluidContent fluidContent = stack.get(TMMLDataComponents.FLUID_CONTENT);
         if (fluidContent != null && !fluidContent.isEmpty()) {
             return fluidContent.copy();
         }
-        return Fluids.EMPTY;
+        return SimpleFluidContent.FluidStack.EMPTY;
     }
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
-        Fluids fluidStack = getStoredFluid(stack);
+        SimpleFluidContent.FluidStack fluidStack = getStoredFluid(stack);
         if (!fluidStack.isEmpty()) {
-            tooltip.add(fluidStack.getHoverName());
+            //tooltip.add(fluidStack);
             tooltip.add(Text.literal("Capacity: " + fluidStack.getAmount() + "/" + MAX_FLUID_CAPACITY + " mb").withStyle(ChatFormatting.GRAY));
             return;
         }
