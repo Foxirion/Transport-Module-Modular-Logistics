@@ -23,15 +23,15 @@ public class TMMLCraftingRecipes extends TMMLRecipeProvider {
                 .unlockedBy(getHasName(TMMLItems.VOID_BOTTLE.get()), has(TMMLItems.VOID_BOTTLE.get()))
                 .save(recipeOutput);
 
-//        ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, TMMLItems.FLUID_TRANSPORT_MODULE.get())
-//                .define('V', TMMLItems.VOID_BOTTLE.get())
-//                .define('I', Items.IRON_INGOT)
-//                .define('D', Items.REDSTONE)
-//                .pattern("DID")
-//                .pattern("IVI")
-//                .pattern("DID")
-//                .unlockedBy(getHasName(TMMLItems.VOID_BOTTLE.get()), has(TMMLItems.VOID_BOTTLE.get()))
-//                .save(recipeOutput);
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, TMMLItems.FLUID_TRANSPORT_MODULE.get())
+                .define('V', TMMLItems.VOID_BOTTLE.get())
+                .define('I', Items.IRON_INGOT)
+                .define('D', Items.REDSTONE)
+                .pattern("DID")
+                .pattern("IVI")
+                .pattern("DID")
+                .unlockedBy(getHasName(TMMLItems.VOID_BOTTLE.get()), has(TMMLItems.VOID_BOTTLE.get()))
+                .save(recipeOutput);
 
 //        ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, TMMLItems.ENTITY_TRANSPORT_MODULE.get())
 //                .define('V', TMMLItems.VOID_BOTTLE.get())
