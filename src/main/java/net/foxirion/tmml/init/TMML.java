@@ -16,6 +16,7 @@ public class TMML {
     public TMML(IEventBus bus) {
         TMMLItems.ITEMS.register(bus);
         TMMLCreativeModeTabs.CREATIVE_TAB.register(bus);
+        TMMLDataComponents.COMPONENTS.register(bus);
     }
 
     public static ResourceLocation rl(String path) {
