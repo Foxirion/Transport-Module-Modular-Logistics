@@ -24,8 +24,8 @@ public class TMMLCreativeModeTabs {
                     .displayItems((itemDisplayParameters, output) -> {
                         output.accept(TMMLItems.VOID_BOTTLE.get());
                         output.accept(TMMLItems.BLOCK_TRANSPORT_MODULE.get());
-//                output.accept(TMMLItems.LIQUID_TRANSPORT_MODULE.get());
-//                output.accept(TMMLItems.ENTITY_TRANSPORT_MODULE.get());
+                        output.accept(TMMLItems.LIQUID_TRANSPORT_MODULE.get());
+//                      output.accept(TMMLItems.ENTITY_TRANSPORT_MODULE.get());
                     }).build()
     );
 }

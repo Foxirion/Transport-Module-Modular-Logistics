@@ -20,7 +20,10 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidType;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class FluidTransportModule extends Item {
@@ -69,7 +72,7 @@ public class FluidTransportModule extends Item {
                     level.setBlock(pos, Blocks.AIR.defaultBlockState(), 11);
 
                     if (!level.isClientSide) {
-                        player.displayClientMessage(Component.literal("Picked up additional " + updatedFluid.getHoverName().getString()), true);
+                        player.displayClientMessage(Component.literal("Picked up additional " + updatedFluid.getDisplayName().getString()), true);
                     }
 
                     return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
@@ -204,10 +207,10 @@ public class FluidTransportModule extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag flag) {
         FluidStack fluidStack = getStoredFluid(stack);
         if (!fluidStack.isEmpty()) {
-            tooltipComponents.add(fluidStack.getHoverName());
+            tooltipComponents.add(fluidStack.getDisplayName());
             tooltipComponents.add(Component.literal("Capacity: " + fluidStack.getAmount() + "/" + MAX_FLUID_CAPACITY + " mb").withStyle(ChatFormatting.GRAY));
             return;
         }

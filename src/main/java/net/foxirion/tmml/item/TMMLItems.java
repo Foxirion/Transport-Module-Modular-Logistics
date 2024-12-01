@@ -1,6 +1,7 @@
 package net.foxirion.tmml.item;
 
 import net.foxirion.tmml.item.custom.BlockTransportModule;
+import net.foxirion.tmml.item.custom.FluidTransportModule;
 import net.foxirion.tmml.item.custom.VoidBottleItem;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.registries.DeferredRegister;
@@ -21,7 +22,7 @@ public class TMMLItems {
                     .stacksTo(1)));
 
     public static final  RegistryObject<Item> LIQUID_TRANSPORT_MODULE = ITEMS.register("liquid_transport_module",
-            () -> new Item(new Item.Properties()
+            () -> new FluidTransportModule(new Item.Properties()
                     .stacksTo(1)));
 
     public static final  RegistryObject<Item> ENTITY_TRANSPORT_MODULE = ITEMS.register("entity_transport_module",
