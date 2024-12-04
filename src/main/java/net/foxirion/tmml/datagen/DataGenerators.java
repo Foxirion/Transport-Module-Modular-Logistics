@@ -18,20 +18,20 @@ import static net.foxirion.tmml.init.TMML.TMMLID;
 @EventBusSubscriber(modid = TMMLID, bus = EventBusSubscriber.Bus.MOD)
 public class DataGenerators {
     @SubscribeEvent
-    public static void gatherData(GatherDataEvent event) {
+    public static void gatherData(GatherDataEvent.Client event) {
         try {
             DataGenerator generator = event.getGenerator();
             PackOutput output = generator.getPackOutput();
             ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
             CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
 
-            generator.addProvider(true, new LangProvider(output));
+            event.addProvider(new LangProvider(output));
 
-            generator.addProvider(true, new TMMLBlockTagsProvider(output, lookupProvider, existingFileHelper));
+            event.addProvider(new TMMLBlockTagsProvider(output, lookupProvider, existingFileHelper));
 
-            generator.addProvider(true, new TMMLRecipeProvider.Runner(output, lookupProvider));
+            event.addProvider(new TMMLRecipeProvider.Runner(output, lookupProvider));
 
-            generator.addProvider(true, new TMMLItemModelProvider(output, existingFileHelper));
+            event.addProvider(new TMMLItemModelProvider(output, existingFileHelper));
 
         } catch (RuntimeException e) {
             TMML.logger.error("Transport Module: Modular Logistics failed to gather data", e);
