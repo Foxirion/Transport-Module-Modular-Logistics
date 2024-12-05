@@ -1,38 +1,46 @@
 package net.foxirion.tmml.item.custom;
 
-import net.minecraft.ChatFormatting;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.LiquidBlockContainer;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult.Type;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.LiquidBlockContainer;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidType;
+import net.minecraft.nbt.CompoundTag;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
 public class FluidTransportModule extends Item {
+    // UNCHANGED: Maximum fluid capacity
     public static final int MAX_FLUID_CAPACITY = 10000;
 
+    // CHANGED: NBT key for fluid storage instead of data components
+    public static final String FLUID_NBT_KEY = "StoredFluid";
+
+    // UNCHANGED: Constructor
     public FluidTransportModule(Properties properties) {
         super(properties.stacksTo(1));
     }
 
+    // UNCHANGED: Use method calling handleFluidInteraction
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack itemstack = player.getItemInHand(hand);
@@ -43,10 +51,14 @@ public class FluidTransportModule extends Item {
         return handleFluidInteraction(level, blockpos, direction, itemstack, player);
     }
 
+    // MOSTLY UNCHANGED: Fluid interaction logic
     public InteractionResultHolder handleFluidInteraction(Level level, BlockPos pos, Direction direction, ItemStack stack, Player player) {
         BlockState blockState = level.getBlockState(pos);
         FluidState fluidState = blockState.getFluidState();
+
+        // CHANGED: Use new getStoredFluid method
         FluidStack existingFluid = getStoredFluid(stack);
+
         boolean isShiftKeyDown = player.isShiftKeyDown();
         boolean isWaterloggable = blockState.hasProperty(BlockStateProperties.WATERLOGGED);
 
@@ -65,8 +77,8 @@ public class FluidTransportModule extends Item {
                     FluidStack updatedFluid = existingFluid.copy();
                     updatedFluid.grow(fluidToAdd);
 
-                    // Update fluid in item
-                    stack.set(TMMLDataComponents.FLUID_CONTENT, SimpleFluidContent.copyOf(updatedFluid));
+                    // CHANGED: Use new saveFluidToNBT method instead of data components
+                    saveFluidToNBT(stack, updatedFluid);
 
                     // Remove fluid from world
                     level.setBlock(pos, Blocks.AIR.defaultBlockState(), 11);
@@ -103,12 +115,8 @@ public class FluidTransportModule extends Item {
                 FluidStack updatedFluid = existingFluid.copy();
                 updatedFluid.shrink(FluidType.BUCKET_VOLUME);
 
-                // Update fluid content
-                if (updatedFluid.isEmpty()) {
-                    stack.set(TMMLDataComponents.FLUID_CONTENT, SimpleFluidContent.EMPTY);
-                } else {
-                    stack.set(TMMLDataComponents.FLUID_CONTENT, SimpleFluidContent.copyOf(updatedFluid));
-                }
+                // CHANGED: Use saveFluidToNBT method
+                saveFluidToNBT(stack, updatedFluid);
 
                 return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
             }
@@ -127,15 +135,11 @@ public class FluidTransportModule extends Item {
                     FluidStack updatedFluid = existingFluid.copy();
                     updatedFluid.shrink(FluidType.BUCKET_VOLUME);
 
-                    // Update fluid content
-                    if (updatedFluid.isEmpty()) {
-                        stack.set(TMMLDataComponents.FLUID_CONTENT, SimpleFluidContent.EMPTY);
-                    } else {
-                        stack.set(TMMLDataComponents.FLUID_CONTENT, SimpleFluidContent.copyOf(updatedFluid));
-                    }
+                    // CHANGED: Use saveFluidToNBT method
+                    saveFluidToNBT(stack, updatedFluid);
 
                     if (!level.isClientSide) {
-                        player.displayClientMessage(Component.literal("Placed " + existingFluid.getHoverName().getString()), true);
+                        player.displayClientMessage(Component.literal("Placed " + existingFluid.getDisplayName().getString()), true);
                     }
 
                     return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
@@ -151,8 +155,9 @@ public class FluidTransportModule extends Item {
             if (isWaterloggable && fluidState.getType() == Fluids.WATER) {
                 // Create fluid stack
                 FluidStack fluidToStore = new FluidStack(fluidState.getType(), FluidType.BUCKET_VOLUME);
-                SimpleFluidContent fluidContent = SimpleFluidContent.copyOf(fluidToStore);
-                stack.set(TMMLDataComponents.FLUID_CONTENT, fluidContent);
+
+                // CHANGED: Use saveFluidToNBT method
+                saveFluidToNBT(stack, fluidToStore);
 
                 // Remove water from waterlogged state, but keep the block
                 BlockState updatedState = blockState.setValue(BlockStateProperties.WATERLOGGED, false);
@@ -164,14 +169,15 @@ public class FluidTransportModule extends Item {
             // Original fluid pickup logic
             if (existingFluid.isEmpty()) {
                 FluidStack fluidToStore = new FluidStack(fluidState.getType(), FluidType.BUCKET_VOLUME);
-                SimpleFluidContent fluidContent = SimpleFluidContent.copyOf(fluidToStore);
-                stack.set(TMMLDataComponents.FLUID_CONTENT, fluidContent);
+
+                // CHANGED: Use saveFluidToNBT method
+                saveFluidToNBT(stack, fluidToStore);
 
                 // Remove the fluid from the world
                 level.setBlock(pos, Blocks.AIR.defaultBlockState(), 11);
 
                 if (!level.isClientSide) {
-                    player.displayClientMessage(Component.literal("Picked up " + fluidToStore.getHoverName().getString()), true);
+                    player.displayClientMessage(Component.literal("Picked up " + fluidToStore.getDisplayName().getString()), true);
                 }
 
                 return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
@@ -186,26 +192,28 @@ public class FluidTransportModule extends Item {
         return InteractionResultHolder.fail(stack);
     }
 
+    // UNCHANGED: Fluid placement check
     public boolean canPlaceFluid(Level level, BlockPos pos, BlockState blockState, Fluid fluid) {
-        // Check if the block can be replaced
         if (blockState.canBeReplaced(fluid)) {
             if (blockState.getBlock() instanceof LiquidBlockContainer) {
                 LiquidBlockContainer container = (LiquidBlockContainer) blockState.getBlock();
-                return container.canPlaceLiquid(null, level, pos, blockState, fluid);
+                return container.canPlaceLiquid(level, pos, blockState, fluid);
             }
             return true;
         }
         return false;
     }
 
+    // CHANGED: Fluid storage retrieval using NBT
     public FluidStack getStoredFluid(ItemStack stack) {
-        SimpleFluidContent fluidContent = stack.get(TMMLDataComponents.FLUID_CONTENT);
-        if (fluidContent != null && !fluidContent.isEmpty()) {
-            return fluidContent.copy();
+        CompoundTag nbt = stack.getTag();
+        if (nbt != null && nbt.contains(FLUID_NBT_KEY)) {
+            return FluidStack.loadFluidStackFromNBT(nbt.getCompound(FLUID_NBT_KEY));
         }
         return FluidStack.EMPTY;
     }
 
+    // UNCHANGED: Tooltip method
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag flag) {
         FluidStack fluidStack = getStoredFluid(stack);
@@ -217,4 +225,13 @@ public class FluidTransportModule extends Item {
         tooltipComponents.add(Component.literal("[Empty]"));
     }
 
+    // NEW: Method to save fluid to NBT
+    public void saveFluidToNBT(ItemStack stack, FluidStack fluidStack) {
+        if (fluidStack.isEmpty()) {
+            stack.removeTagKey(FLUID_NBT_KEY);
+        } else {
+            CompoundTag fluidNBT = fluidStack.writeToNBT(new CompoundTag());
+            stack.getOrCreateTag().put(FLUID_NBT_KEY, fluidNBT);
+        }
+    }
 }
