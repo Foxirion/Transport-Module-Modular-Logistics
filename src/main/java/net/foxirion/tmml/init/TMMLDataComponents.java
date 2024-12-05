@@ -20,6 +20,6 @@ public class TMMLDataComponents {
 
     public static final Supplier<DataComponentType<CompoundTag>> ENTITY_CONTENT = COMPONENTS.registerComponentType(
             "entity_content",
-            builder -> builder.persistent(CompoundTag.CODEC).networkSynchronized(CompoundTag.CODEC)
+            builder -> builder.persistent(CompoundTag.CODEC)
     );
 }
