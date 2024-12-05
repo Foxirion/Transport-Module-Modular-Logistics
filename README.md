@@ -52,7 +52,7 @@ Release Version 1.0.0 RELEASED! (on Forge 1.19.2 and Fabric 1.21.1)
 
 Release Version 2.0.0 RELEASED! (on NeoForge: 1.21.1, 1.21.3 and Forge 1.20.1) 
 
-(for suggestions for other minecraft versions you can tell us in curseforge comments and in the reddit post about this or [Click Here](https://www.reddit.com/r/Foxirions_Forge/comments/1goz0w0/tmml_1203_is_here/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button))
+(for suggestions for other minecraft versions you can tell us in curseforge comments and in the reddit post about this or [Click Here](https://www.reddit.com/r/Foxirions_Forge/comments/1h7ff6n/tmml_versions_update/?utm_source=post_insights&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button))
 
 ## ℹ️ About
 
