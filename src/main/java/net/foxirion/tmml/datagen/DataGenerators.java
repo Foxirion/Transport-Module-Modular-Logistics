@@ -1,5 +1,7 @@
 package net.foxirion.tmml.datagen;
 
+import net.foxirion.tmml.datagen.models.TMMLItemModelGenerator;
+import net.foxirion.tmml.datagen.models.TMMLModelProvider;
 import net.foxirion.tmml.datagen.recipe.TMMLRecipeProvider;
 import net.foxirion.tmml.datagen.tags.TMMLBlockTagsProvider;
 import net.foxirion.tmml.init.TMML;
@@ -32,6 +34,7 @@ public class DataGenerators {
             event.addProvider(new TMMLRecipeProvider.Runner(output, lookupProvider));
 
             event.addProvider(new TMMLItemModelProvider(output, existingFileHelper));
+            event.addProvider(new TMMLModelProvider(output));
 
         } catch (RuntimeException e) {
             TMML.logger.error("Transport Module: Modular Logistics failed to gather data", e);

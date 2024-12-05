@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "tmml:item/fluid_transport_module"
+  }
+}
