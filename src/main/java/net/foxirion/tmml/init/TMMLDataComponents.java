@@ -2,6 +2,9 @@ package net.foxirion.tmml.init;
 
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.neoforged.neoforge.fluids.SimpleFluidContent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -15,4 +18,8 @@ public class TMMLDataComponents {
             builder -> builder.persistent(SimpleFluidContent.CODEC).networkSynchronized(SimpleFluidContent.STREAM_CODEC)
     );
 
+    public static final Supplier<DataComponentType<CompoundTag>> ENTITY_CONTENT = COMPONENTS.registerComponentType(
+            "entity_content",
+            builder -> builder.persistent(CompoundTag.CODEC).networkSynchronized(CompoundTag.CODEC)
+    );
 }
