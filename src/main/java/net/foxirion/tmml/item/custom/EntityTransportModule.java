@@ -22,6 +22,7 @@ import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -40,33 +41,57 @@ public class EntityTransportModule extends Item {
     }
 
     @Override
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+        if (player == null || level.isClientSide) {
+            return InteractionResultHolder.pass(player.getItemInHand(hand));
+        }
+
+        ItemStack itemStack = player.getItemInHand(hand);
+        CompoundTag storedEntity = getStoredEntity(itemStack);
+
+        if (player.isShiftKeyDown() && storedEntity == null) {
+            // Attempt to pick up an entity
+            InteractionResult result = handleEntityPickup(level, player, itemStack);
+            return new InteractionResultHolder<>(result, itemStack);
+        }
+
+        return InteractionResultHolder.pass(itemStack);
+    }
+
+
+    @Override
     public InteractionResult useOn(UseOnContext context) {
         Level level = context.getLevel();
         Player player = context.getPlayer();
         ItemStack itemStack = context.getItemInHand();
 
-        if (player == null) return InteractionResult.FAIL;
+        if (player == null || level.isClientSide) return InteractionResult.PASS;
 
         CompoundTag storedEntity = getStoredEntity(itemStack);
-        boolean isShiftKeyDown = player.isShiftKeyDown();
 
-        if (isShiftKeyDown && storedEntity == null) {
-            List<LivingEntity> nearbyEntities = level.getEntitiesOfClass(
-                    LivingEntity.class,
-                    new AABB(context.getClickedPos()).inflate(1.5),
-                    this::canStoreEntity
-            );
-
-            if (!nearbyEntities.isEmpty()) {
-                return handleEntityStore(level, itemStack, nearbyEntities.get(0), player);
-            }
-        }
-
-        if (!isShiftKeyDown && storedEntity != null) {
+        if (!player.isShiftKeyDown() && storedEntity != null) {
+            // Attempt to place the stored entity
             return handleEntityPlace(level, context, itemStack, storedEntity);
         }
 
         return InteractionResult.PASS;
+    }
+
+    private InteractionResult handleEntityPickup(Level level, Player player, ItemStack itemStack) {
+        Vec3 lookVec = player.getLookAngle();
+        Vec3 start = player.getEyePosition();
+        Vec3 end = start.add(lookVec.scale(5)); // Ray trace up to 5 blocks
+        AABB box = new AABB(start, end).inflate(1);
+
+        List<LivingEntity> entities = level.getEntitiesOfClass(LivingEntity.class, box, this::canStoreEntity);
+
+        if (!entities.isEmpty()) {
+            LivingEntity target = entities.get(0);
+            return handleEntityStore(level, itemStack, target, player);
+        }
+
+        player.displayClientMessage(Component.literal("No valid entity found"), true);
+        return InteractionResult.FAIL;
     }
 
     private boolean canStoreEntity(LivingEntity entity) {
@@ -77,29 +102,17 @@ public class EntityTransportModule extends Item {
     }
 
     private InteractionResult handleEntityStore(Level level, ItemStack itemStack, LivingEntity target, Player player) {
-        if (level.isClientSide) return InteractionResult.CONSUME;
-
-        if (!canStoreEntity(target)) {
-            player.displayClientMessage(Component.literal("Cannot store this entity"), true);
-            return InteractionResult.FAIL;
-        }
-
         CompoundTag entityTag = new CompoundTag();
         target.save(entityTag);
 
         itemStack.set(TMMLDataComponents.ENTITY_CONTENT.get(), entityTag);
         target.remove(Entity.RemovalReason.DISCARDED);
 
-        if (!level.isClientSide) {
-            player.displayClientMessage(Component.literal("Stored " + target.getType().getDescriptionId()), true);
-        }
-
+        player.displayClientMessage(Component.literal("Stored " + target.getType().getDescriptionId()), true);
         return InteractionResult.SUCCESS;
     }
 
     private InteractionResult handleEntityPlace(Level level, UseOnContext context, ItemStack itemStack, CompoundTag storedEntityTag) {
-        if (level.isClientSide) return InteractionResult.CONSUME;
-
         try {
             String storedEntityTypeKey = storedEntityTag.getString("id");
             EntityType<?> expectedType = EntityType.byString(storedEntityTypeKey).orElse(null);
@@ -109,15 +122,17 @@ public class EntityTransportModule extends Item {
                 return InteractionResult.FAIL;
             }
 
-            storedEntityTag.putDouble("Pos.0", context.getClickedPos().getX() + 0.5);
-            storedEntityTag.putDouble("Pos.1", context.getClickedPos().getY() + 1);
-            storedEntityTag.putDouble("Pos.2", context.getClickedPos().getZ() + 0.5);
+            BlockPos targetPos = context.getClickedPos().above();
+            storedEntityTag.putDouble("Pos.0", targetPos.getX() + 0.5);
+            storedEntityTag.putDouble("Pos.1", targetPos.getY());
+            storedEntityTag.putDouble("Pos.2", targetPos.getZ() + 0.5);
 
-            Entity recreatedEntity = EntityType.loadEntityRecursive(storedEntityTag, level, (loadedEntity) -> loadedEntity);
+            Entity recreatedEntity = EntityType.loadEntityRecursive(storedEntityTag, level, (entity) -> entity);
 
             if (recreatedEntity != null) {
                 level.addFreshEntity(recreatedEntity);
                 itemStack.remove(TMMLDataComponents.ENTITY_CONTENT.get());
+                context.getPlayer().displayClientMessage(Component.literal("Placed " + recreatedEntity.getType().getDescriptionId()), true);
                 return InteractionResult.SUCCESS;
             }
         } catch (Exception e) {
@@ -143,4 +158,3 @@ public class EntityTransportModule extends Item {
         tooltipComponents.add(Component.literal("[Empty]").withStyle(ChatFormatting.WHITE));
     }
 }
-
