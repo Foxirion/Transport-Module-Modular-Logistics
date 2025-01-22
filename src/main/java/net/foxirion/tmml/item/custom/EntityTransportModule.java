@@ -3,9 +3,9 @@ package net.foxirion.tmml.item.custom;
 import net.foxirion.tmml.init.TMMLDataComponents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.NonNullList;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.DoubleTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -17,8 +17,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
@@ -47,7 +45,7 @@ public class EntityTransportModule extends Item {
         }
 
         ItemStack itemStack = player.getItemInHand(hand);
-        CompoundTag storedEntity = getStoredEntity(itemStack);
+        CompoundTag storedEntity = itemStack.getOrDefault(TMMLDataComponents.ENTITY_CONTENT, null);
 
         if (player.isShiftKeyDown() && storedEntity == null) {
             // Attempt to pick up an entity
@@ -58,7 +56,6 @@ public class EntityTransportModule extends Item {
         return InteractionResultHolder.pass(itemStack);
     }
 
-
     @Override
     public InteractionResult useOn(UseOnContext context) {
         Level level = context.getLevel();
@@ -67,7 +64,7 @@ public class EntityTransportModule extends Item {
 
         if (player == null || level.isClientSide) return InteractionResult.PASS;
 
-        CompoundTag storedEntity = getStoredEntity(itemStack);
+        CompoundTag storedEntity = itemStack.getOrDefault(TMMLDataComponents.ENTITY_CONTENT, null);
 
         if (!player.isShiftKeyDown() && storedEntity != null) {
             // Attempt to place the stored entity
@@ -80,7 +77,7 @@ public class EntityTransportModule extends Item {
     private InteractionResult handleEntityPickup(Level level, Player player, ItemStack itemStack) {
         Vec3 lookVec = player.getLookAngle();
         Vec3 start = player.getEyePosition();
-        Vec3 end = start.add(lookVec.scale(5)); // Ray trace up to 5 blocks
+        Vec3 end = start.add(lookVec.scale(5));
         AABB box = new AABB(start, end).inflate(1);
 
         List<LivingEntity> entities = level.getEntitiesOfClass(LivingEntity.class, box, this::canStoreEntity);
@@ -90,7 +87,7 @@ public class EntityTransportModule extends Item {
             return handleEntityStore(level, itemStack, target, player);
         }
 
-        player.displayClientMessage(Component.literal("No valid entity found"), true);
+        player.displayClientMessage(Component.literal("No valid entity found").withStyle(ChatFormatting.RED), true);
         return InteractionResult.FAIL;
     }
 
@@ -105,10 +102,11 @@ public class EntityTransportModule extends Item {
         CompoundTag entityTag = new CompoundTag();
         target.save(entityTag);
 
-        itemStack.set(TMMLDataComponents.ENTITY_CONTENT.get(), entityTag);
+        itemStack.set(TMMLDataComponents.ENTITY_CONTENT, entityTag);
+
         target.remove(Entity.RemovalReason.DISCARDED);
 
-        player.displayClientMessage(Component.literal("Stored " + target.getType().getDescriptionId()), true);
+        player.displayClientMessage(Component.literal("Stored " + target.getType().getDescriptionId()).withStyle(ChatFormatting.GREEN), true);
         return InteractionResult.SUCCESS;
     }
 
@@ -118,43 +116,51 @@ public class EntityTransportModule extends Item {
             EntityType<?> expectedType = EntityType.byString(storedEntityTypeKey).orElse(null);
 
             if (expectedType == null) {
-                context.getPlayer().displayClientMessage(Component.literal("Cannot recreate entity"), true);
+                context.getPlayer().displayClientMessage(Component.literal("Cannot recreate entity").withStyle(ChatFormatting.RED), true);
                 return InteractionResult.FAIL;
             }
 
             BlockPos targetPos = context.getClickedPos().above();
-            storedEntityTag.putDouble("Pos.0", targetPos.getX() + 0.5);
-            storedEntityTag.putDouble("Pos.1", targetPos.getY());
-            storedEntityTag.putDouble("Pos.2", targetPos.getZ() + 0.5);
+            double x = targetPos.getX() + 0.5;
+            double y = targetPos.getY();
+            double z = targetPos.getZ() + 0.5;
+
+            storedEntityTag.put("Pos", newListTagForPosition(x, y, z));
 
             Entity recreatedEntity = EntityType.loadEntityRecursive(storedEntityTag, level, (entity) -> entity);
 
             if (recreatedEntity != null) {
                 level.addFreshEntity(recreatedEntity);
-                itemStack.remove(TMMLDataComponents.ENTITY_CONTENT.get());
-                context.getPlayer().displayClientMessage(Component.literal("Placed " + recreatedEntity.getType().getDescriptionId()), true);
+                itemStack.remove(TMMLDataComponents.ENTITY_CONTENT);
+
+                context.getPlayer().displayClientMessage(Component.literal("Placed " + recreatedEntity.getType().getDescriptionId()).withStyle(ChatFormatting.GREEN), true);
                 return InteractionResult.SUCCESS;
             }
         } catch (Exception e) {
             e.printStackTrace();
-            context.getPlayer().displayClientMessage(Component.literal("Failed to place entity"), true);
+            context.getPlayer().displayClientMessage(Component.literal("Failed to place entity").withStyle(ChatFormatting.RED), true);
         }
 
         return InteractionResult.PASS;
     }
 
-    private CompoundTag getStoredEntity(ItemStack stack) {
-        return stack.get(TMMLDataComponents.ENTITY_CONTENT.get());
+    private static ListTag newListTagForPosition(double x, double y, double z) {
+        ListTag posList = new ListTag();
+        posList.add(DoubleTag.valueOf(x));
+        posList.add(DoubleTag.valueOf(y));
+        posList.add(DoubleTag.valueOf(z));
+        return posList;
     }
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        CompoundTag storedEntity = getStoredEntity(stack);
+        CompoundTag storedEntity = stack.getOrDefault(TMMLDataComponents.ENTITY_CONTENT, null);
         if (storedEntity != null) {
+            // Display the name of the stored entity
             String entityTypeName = storedEntity.getString("id");
             tooltipComponents.add(Component.literal("Stored Entity: " + entityTypeName).withStyle(ChatFormatting.WHITE));
-            return;
+        } else {
+            tooltipComponents.add(Component.literal("[Empty]").withStyle(ChatFormatting.WHITE));
         }
-        tooltipComponents.add(Component.literal("[Empty]").withStyle(ChatFormatting.WHITE));
     }
 }
