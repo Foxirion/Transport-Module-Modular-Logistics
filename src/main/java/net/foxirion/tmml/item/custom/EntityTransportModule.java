@@ -14,24 +14,41 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 
-import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public class EntityTransportModule extends Item {
     private static final Set<EntityType<?>> BANNED_ENTITY_TYPES = Set.of(
-            EntityType.PLAYER,
-            EntityType.ENDER_DRAGON,
-            EntityType.ENDER_PEARL,
-            EntityType.WITHER
+
+            EntityType.ENDER_DRAGON, EntityType.WITHER, EntityType.GIANT, //vanilla bosses
+
+            EntityType.ENDER_PEARL, EntityType.FIREBALL, EntityType.DRAGON_FIREBALL, EntityType.SMALL_FIREBALL,
+            EntityType.FIREWORK_ROCKET, EntityType.ARROW, EntityType.SPECTRAL_ARROW, EntityType.WIND_CHARGE,
+            EntityType.BREEZE_WIND_CHARGE, EntityType.EGG, EntityType.SNOWBALL, EntityType.EYE_OF_ENDER,EntityType.POTION,
+            EntityType.LLAMA_SPIT, //projectiles
+
+            EntityType.EXPERIENCE_BOTTLE, EntityType.EXPERIENCE_ORB, //xp
+
+            EntityType.ITEM, EntityType.ITEM_DISPLAY, EntityType.ITEM_FRAME, EntityType.GLOW_ITEM_FRAME, EntityType.ARMOR_STAND,
+            EntityType.AREA_EFFECT_CLOUD, EntityType.BLOCK_DISPLAY,EntityType.CHEST_BOAT, EntityType.BOAT, EntityType.CHEST_MINECART,
+            EntityType.MINECART, EntityType.FURNACE_MINECART, EntityType.HOPPER_MINECART, EntityType.SPAWNER_MINECART, EntityType.COMMAND_BLOCK_MINECART,
+            EntityType.TNT_MINECART, EntityType.END_CRYSTAL, EntityType.EVOKER_FANGS, EntityType.FALLING_BLOCK,
+            EntityType.FISHING_BOBBER, EntityType.INTERACTION, EntityType.LEASH_KNOT, EntityType.LIGHTNING_BOLT, EntityType.TEXT_DISPLAY,//items & blocks & effects
+
+            EntityType.PLAYER //players
+
+
     );
 
     public EntityTransportModule(Properties properties) {
@@ -75,15 +92,22 @@ public class EntityTransportModule extends Item {
     }
 
     private InteractionResult handleEntityPickup(Level level, Player player, ItemStack itemStack) {
-        Vec3 lookVec = player.getLookAngle();
+        // Create a more precise raycast
         Vec3 start = player.getEyePosition();
-        Vec3 end = start.add(lookVec.scale(5));
-        AABB box = new AABB(start, end).inflate(1);
+        Vec3 lookVec = player.getLookAngle();
+        Vec3 end = start.add(lookVec.scale(5));  // Keep the 5-block reach
 
-        List<LivingEntity> entities = level.getEntitiesOfClass(LivingEntity.class, box, this::canStoreEntity);
+        // Use EntityHitResult to get precise entity targeting
+        EntityHitResult hitResult = ProjectileUtil.getEntityHitResult(
+                level,
+                player,
+                start,
+                end,
+                new AABB(start, end).inflate(0.5), // Smaller inflation for more precise selection
+                entity -> entity instanceof LivingEntity && canStoreEntity((LivingEntity) entity)
+        );
 
-        if (!entities.isEmpty()) {
-            LivingEntity target = entities.get(0);
+        if (hitResult != null && hitResult.getEntity() instanceof LivingEntity target) {
             return handleEntityStore(level, itemStack, target, player);
         }
 
@@ -106,7 +130,9 @@ public class EntityTransportModule extends Item {
 
         target.remove(Entity.RemovalReason.DISCARDED);
 
-        player.displayClientMessage(Component.literal("Stored " + target.getType().getDescriptionId()).withStyle(ChatFormatting.GREEN), true);
+        // Get the clean entity name instead of the translation key
+        String entityName = Component.translatable(target.getType().getDescriptionId()).getString();
+        player.displayClientMessage(Component.literal("Stored " + entityName).withStyle(ChatFormatting.GREEN), true);
         return InteractionResult.SUCCESS;
     }
 
@@ -133,7 +159,9 @@ public class EntityTransportModule extends Item {
                 level.addFreshEntity(recreatedEntity);
                 itemStack.remove(TMMLDataComponents.ENTITY_CONTENT);
 
-                context.getPlayer().displayClientMessage(Component.literal("Placed " + recreatedEntity.getType().getDescriptionId()).withStyle(ChatFormatting.GREEN), true);
+                // Get the clean entity name
+                String entityName = Component.translatable(recreatedEntity.getType().getDescriptionId()).getString();
+                context.getPlayer().displayClientMessage(Component.literal("Placed " + entityName).withStyle(ChatFormatting.GREEN), true);
                 return InteractionResult.SUCCESS;
             }
         } catch (Exception e) {
@@ -156,9 +184,14 @@ public class EntityTransportModule extends Item {
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         CompoundTag storedEntity = stack.getOrDefault(TMMLDataComponents.ENTITY_CONTENT, null);
         if (storedEntity != null) {
-            // Display the name of the stored entity
-            String entityTypeName = storedEntity.getString("id");
-            tooltipComponents.add(Component.literal("Stored Entity: " + entityTypeName).withStyle(ChatFormatting.WHITE));
+            // Get the entity type and translate it to a readable name
+            String entityTypeId = storedEntity.getString("id");
+            Optional<EntityType<?>> entityType = EntityType.byString(entityTypeId);
+            String displayName = entityType
+                    .map(type -> Component.translatable(type.getDescriptionId()).getString())
+                    .orElse(entityTypeId);
+
+            tooltipComponents.add(Component.literal("Stored: " + displayName).withStyle(ChatFormatting.WHITE));
         } else {
             tooltipComponents.add(Component.literal("[Empty]").withStyle(ChatFormatting.WHITE));
         }
