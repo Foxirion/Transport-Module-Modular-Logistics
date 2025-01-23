@@ -31,7 +31,7 @@ import java.util.Set;
 public class EntityTransportModule extends Item {
     private static final Set<EntityType<?>> BANNED_ENTITY_TYPES = Set.of(
 
-            EntityType.ENDER_DRAGON, EntityType.WITHER, EntityType.GIANT, //vanilla bosses
+            EntityType.ENDER_DRAGON, EntityType.WITHER, EntityType.GIANT, EntityType.ELDER_GUARDIAN, EntityType.WARDEN, //vanilla bosses
 
             EntityType.ENDER_PEARL, EntityType.FIREBALL, EntityType.DRAGON_FIREBALL, EntityType.SMALL_FIREBALL,
             EntityType.FIREWORK_ROCKET, EntityType.ARROW, EntityType.SPECTRAL_ARROW, EntityType.WIND_CHARGE,
@@ -132,7 +132,7 @@ public class EntityTransportModule extends Item {
 
         // Get the clean entity name instead of the translation key
         String entityName = Component.translatable(target.getType().getDescriptionId()).getString();
-        player.displayClientMessage(Component.literal("Stored " + entityName).withStyle(ChatFormatting.GREEN), true);
+        player.displayClientMessage(Component.literal("Picked up: " + entityName).withStyle(ChatFormatting.WHITE), true);
         return InteractionResult.SUCCESS;
     }
 
@@ -142,7 +142,7 @@ public class EntityTransportModule extends Item {
             EntityType<?> expectedType = EntityType.byString(storedEntityTypeKey).orElse(null);
 
             if (expectedType == null) {
-                context.getPlayer().displayClientMessage(Component.literal("Cannot recreate entity").withStyle(ChatFormatting.RED), true);
+                context.getPlayer().displayClientMessage(Component.literal("Cannot recreate entity").withStyle(ChatFormatting.WHITE), true);
                 return InteractionResult.FAIL;
             }
 
@@ -161,12 +161,12 @@ public class EntityTransportModule extends Item {
 
                 // Get the clean entity name
                 String entityName = Component.translatable(recreatedEntity.getType().getDescriptionId()).getString();
-                context.getPlayer().displayClientMessage(Component.literal("Placed " + entityName).withStyle(ChatFormatting.GREEN), true);
+                context.getPlayer().displayClientMessage(Component.literal("Placed: " + entityName).withStyle(ChatFormatting.WHITE), true);
                 return InteractionResult.SUCCESS;
             }
         } catch (Exception e) {
             e.printStackTrace();
-            context.getPlayer().displayClientMessage(Component.literal("Failed to place entity").withStyle(ChatFormatting.RED), true);
+            context.getPlayer().displayClientMessage(Component.literal("Failed to place entity").withStyle(ChatFormatting.WHITE), true);
         }
 
         return InteractionResult.PASS;
