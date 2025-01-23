@@ -136,7 +136,7 @@ public class FluidTransportModule extends Item {
                     }
 
                     if (!level.isClientSide) {
-                        player.displayClientMessage(Component.literal("Placed " + existingFluid.getHoverName().getString()), true);
+                        player.displayClientMessage(Component.literal("Placed: " + existingFluid.getHoverName().getString()), true);
                     }
 
                     return InteractionResult.SUCCESS;
@@ -172,7 +172,7 @@ public class FluidTransportModule extends Item {
                 level.setBlock(pos, Blocks.AIR.defaultBlockState(), 11);
 
                 if (!level.isClientSide) {
-                    player.displayClientMessage(Component.literal("Picked up " + fluidToStore.getHoverName().getString()), true);
+                    player.displayClientMessage(Component.literal("Picked up: " + fluidToStore.getHoverName().getString()), true);
                 }
 
                 return InteractionResult.SUCCESS;

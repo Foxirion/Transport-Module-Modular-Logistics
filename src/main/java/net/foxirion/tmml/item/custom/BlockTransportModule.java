@@ -92,6 +92,15 @@ public class BlockTransportModule extends Item {
         }
         level.removeBlock(pos, false);
 
+        // Add a message with the block's name
+        if (!level.isClientSide && player != null) {
+            player.displayClientMessage(
+                    Component.literal("Picked up: " + blockStack.getDisplayName().getString().replace("[", "").replace("]", ""))
+                            .withStyle(ChatFormatting.WHITE),
+                    true
+            );
+        }
+
         return InteractionResult.SUCCESS;
     }
 
@@ -135,6 +144,15 @@ public class BlockTransportModule extends Item {
                 blockEntity.loadWithComponents(nbt, registries);
                 blockEntity.setChanged();
                 level.sendBlockUpdated(placePos, blockEntity.getBlockState(), blockEntity.getBlockState(), 3);
+            }
+
+            // Add a message with the block's name
+            if (!level.isClientSide && player != null) {
+                player.displayClientMessage(
+                        Component.literal("Placed: " + storedBlock.getDisplayName().getString().replace("[", "").replace("]", ""))
+                                .withStyle(ChatFormatting.WHITE),
+                        true
+                );
             }
 
             // Clear the module

@@ -2,6 +2,7 @@ package net.foxirion.tmml.item;
 
 import net.foxirion.tmml.init.TMML;
 import net.foxirion.tmml.item.custom.BlockTransportModule;
+import net.foxirion.tmml.item.custom.EntityTransportModule;
 import net.foxirion.tmml.item.custom.FluidTransportModule;
 import net.foxirion.tmml.item.custom.VoidBottleItem;
 import net.minecraft.core.registries.Registries;
@@ -35,7 +36,7 @@ public class TMMLItems {
                     .stacksTo(1)));
 
     public static final DeferredItem<Item> ENTITY_TRANSPORT_MODULE = registerItem("entity_transport_module", properties ->
-            new Item(properties
+            new EntityTransportModule(properties
                     .stacksTo(1)));
 
     public static Item createBlockItemWithCustomItemName(Block block, Item.Properties properties) {
