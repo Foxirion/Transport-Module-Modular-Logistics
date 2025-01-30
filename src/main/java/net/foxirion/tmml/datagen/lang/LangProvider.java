@@ -1,4 +1,4 @@
-package net.foxirion.tmml.datagen;
+package net.foxirion.tmml.datagen.lang;
 
 import net.foxirion.tmml.init.TMMLCreativeModeTabs;
 import net.foxirion.tmml.item.TMMLItems;

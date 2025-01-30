@@ -2,6 +2,7 @@ package net.foxirion.tmml.datagen.models;
 
 import net.foxirion.tmml.init.TMML;
 import net.foxirion.tmml.item.TMMLItems;
+import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.client.data.models.ItemModelOutput;
 import net.minecraft.client.data.models.model.*;
 import net.minecraft.resources.ResourceLocation;
@@ -12,13 +13,13 @@ import net.neoforged.api.distmarker.OnlyIn;
 import java.util.function.BiConsumer;
 
 @OnlyIn(Dist.CLIENT)
-public class TMMLItemModelGenerator {
-    public final ItemModelOutput output;
-    public final BiConsumer<ResourceLocation, ModelInstance> modelOutput;
-    public TMMLItemModelGenerator(ItemModelOutput output, BiConsumer<ResourceLocation, ModelInstance> modelOutput) {
-        this.output = output;
-        this.modelOutput = modelOutput;
+public class TMMLItemModelGenerator extends ItemModelGenerators {
+
+    public TMMLItemModelGenerator(ItemModelOutput itemModelOutput, BiConsumer<ResourceLocation, ModelInstance> modelOutput) {
+        super(itemModelOutput, modelOutput);
     }
+
+    @Override
     public void run() {
 
         //Void Bottle
@@ -29,12 +30,5 @@ public class TMMLItemModelGenerator {
         generateFlatItem(TMMLItems.FLUID_TRANSPORT_MODULE.get(), TMMLModelTemplates.TRANSPORT_MODULE_ITEM);
         generateFlatItem(TMMLItems.ENTITY_TRANSPORT_MODULE.get(), TMMLModelTemplates.TRANSPORT_MODULE_ITEM);
 
-    }
-    // Methods
-    public ResourceLocation createFlatItemModel(Item item, ModelTemplate template) {
-        return template.create(ModelLocationUtils.getModelLocation(item), TextureMapping.layer0(item), this.modelOutput);
-    }
-    public void generateFlatItem(Item item, ModelTemplate template) {
-        this.output.accept(item, ItemModelUtils.plainModel(this.createFlatItemModel(item, template)));
     }
 }
