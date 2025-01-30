@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "D": "minecraft:emerald",
+    "I": "minecraft:iron_ingot",
+    "V": "tmml:void_bottle"
+  },
+  "pattern": [
+    "DID",
+    "IVI",
+    "DID"
+  ],
+  "result": {
+    "count": 1,
+    "id": "tmml:entity_transport_module"
+  }
+}
