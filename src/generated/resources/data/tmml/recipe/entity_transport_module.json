@@ -2,17 +2,17 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
+    "E": "minecraft:emerald",
     "I": "minecraft:iron_ingot",
-    "R": "minecraft:redstone",
     "V": "tmml:void_bottle"
   },
   "pattern": [
-    "RIR",
+    "EIE",
     "IVI",
-    "RIR"
+    "EIE"
   ],
   "result": {
     "count": 1,
-    "id": "tmml:fluid_transport_module"
+    "id": "tmml:entity_transport_module"
   }
 }
