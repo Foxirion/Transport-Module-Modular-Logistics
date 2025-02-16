@@ -1,10 +1,7 @@
 package net.foxirion.tmml.item;
 
 import net.foxirion.tmml.init.TMML;
-import net.foxirion.tmml.item.custom.BlockTransportModule;
-import net.foxirion.tmml.item.custom.EntityTransportModule;
-import net.foxirion.tmml.item.custom.FluidTransportModule;
-import net.foxirion.tmml.item.custom.VoidBottleItem;
+import net.foxirion.tmml.item.custom.*;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.BlockItem;
