@@ -1,4 +1,6 @@
+/*
 package net.foxirion.tmml.init;
+
 
 import com.mojang.serialization.Codec;
 import net.minecraft.fluid.Fluid;
@@ -65,3 +67,4 @@ public class SimpleFluidContent {
     }
 }
 
+        */

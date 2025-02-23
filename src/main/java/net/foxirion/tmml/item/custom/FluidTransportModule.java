@@ -1,4 +1,4 @@
-package net.foxirion.tmml.item.custom;
+/* package net.foxirion.tmml.item.custom;
 
 import com.mojang.serialization.Codec;
 import net.foxirion.tmml.init.SimpleFluidContent;
@@ -117,3 +117,5 @@ public class FluidTransportModule extends Item {
         }
     }
 }
+
+ */

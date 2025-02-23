@@ -3,13 +3,11 @@ package net.foxirion.tmml.item.custom;
 import net.foxirion.tmml.util.TMMLTags;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.ChestBlockEntity;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ContainerComponent;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.*;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.nbt.NbtCompound;
@@ -89,6 +87,16 @@ public class BlockTransportModule extends Item {
         }
         world.removeBlock(pos, false);
 
+        // Add the pickup message (new addition)
+        if (!world.isClient && player != null) {
+            String blockName = blockStack.getName().getString().replace("[", "").replace("]", "");
+            player.sendMessage(
+                    Text.literal("Picked up: " + blockName)
+                            .formatted(Formatting.WHITE),
+                    true
+            );
+        }
+
         return ActionResult.success(world.isClient());
     }
 
@@ -133,6 +141,16 @@ public class BlockTransportModule extends Item {
                 blockEntity.readComponentlessNbt(nbt, registries);
                 blockEntity.toUpdatePacket();
                 world.addBlockEntity(blockEntity);
+            }
+
+            // Add the placement message (new addition)
+            if (!world.isClient && player != null) {
+                String blockName = storedBlock.getName().getString().replace("[", "").replace("]", "");
+                player.sendMessage(
+                        Text.literal("Placed: " + blockName)
+                                .formatted(Formatting.WHITE),
+                        true
+                );
             }
 
             // Clear the module
