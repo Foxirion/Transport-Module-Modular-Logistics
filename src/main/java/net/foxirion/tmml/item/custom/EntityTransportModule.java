@@ -36,8 +36,8 @@ public class EntityTransportModule extends Item {
 
             EntityType.ENDER_PEARL, EntityType.FIREBALL, EntityType.DRAGON_FIREBALL, EntityType.SMALL_FIREBALL,
             EntityType.FIREWORK_ROCKET, EntityType.ARROW, EntityType.SPECTRAL_ARROW, EntityType.WIND_CHARGE,
-            EntityType.BREEZE_WIND_CHARGE, EntityType.EGG, EntityType.SNOWBALL, EntityType.EYE_OF_ENDER,EntityType.POTION,
-            EntityType.LLAMA_SPIT, //projectiles
+            EntityType.BREEZE_WIND_CHARGE, EntityType.EGG, EntityType.SNOWBALL, EntityType.EYE_OF_ENDER,EntityType.LINGERING_POTION,
+            EntityType.SPLASH_POTION, EntityType.LLAMA_SPIT, //projectiles
 
             EntityType.EXPERIENCE_BOTTLE, EntityType.EXPERIENCE_ORB, //xp
 
