@@ -15,9 +15,11 @@ import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 public class VoidBottleItem extends Item {
 
@@ -26,9 +28,9 @@ public class VoidBottleItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        tooltipComponents.add(Component.translatable("item.void_bottle.warning").withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
-        tooltipComponents.add(Component.translatable("item.void_bottle.description").withStyle(ChatFormatting.DARK_RED));
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        tooltipComponents.accept(Component.translatable("item.void_bottle.warning").withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
+        tooltipComponents.accept(Component.translatable("item.void_bottle.description").withStyle(ChatFormatting.DARK_RED));
     }
 
     @Override

@@ -3,6 +3,8 @@ package net.foxirion.tmml.item.custom;
 import net.foxirion.tmml.init.TMMLDataComponents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+
+import java.util.function.Consumer;
 import java.util.function.Function;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.DoubleTag;
@@ -19,6 +21,7 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
@@ -181,7 +184,7 @@ public class EntityTransportModule extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         CompoundTag storedEntity = stack.getOrDefault(TMMLDataComponents.ENTITY_CONTENT, null);
         if (storedEntity != null) {
             // Get the entity type and translate it to a readable name
@@ -191,9 +194,9 @@ public class EntityTransportModule extends Item {
                     .map(type -> Component.translatable(type.getDescriptionId()).getString())
                     .orElse(entityTypeId);
 
-            tooltipComponents.add(Component.literal("Stored: " + displayName).withStyle(ChatFormatting.WHITE));
+            tooltipComponents.accept(Component.literal("Stored: " + displayName).withStyle(ChatFormatting.WHITE));
         } else {
-            tooltipComponents.add(Component.literal("[Empty]").withStyle(ChatFormatting.WHITE));
+            tooltipComponents.accept(Component.literal("[Empty]").withStyle(ChatFormatting.WHITE));
         }
     }
 }

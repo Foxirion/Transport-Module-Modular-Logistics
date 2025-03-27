@@ -19,6 +19,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemContainerContents;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
@@ -27,6 +28,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 public class BlockTransportModule extends Item {
     public BlockTransportModule(Properties properties) {
@@ -165,15 +167,15 @@ public class BlockTransportModule extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         ItemContainerContents itemContents = stack.getOrDefault(DataComponents.CONTAINER, ItemContainerContents.EMPTY);
         if (itemContents != ItemContainerContents.EMPTY) {
             try {
                 ItemStack storedStack = itemContents.getStackInSlot(0);
                 if (!storedStack.isEmpty()) {
-                    tooltipComponents.add(storedStack.getDisplayName());
+                    tooltipComponents.accept(storedStack.getDisplayName());
                     if (storedStack.get(DataComponents.BLOCK_ENTITY_DATA) != null) {
-                        tooltipComponents.add(Component.literal("Contains Block Data").withStyle(ChatFormatting.GRAY));
+                        tooltipComponents.accept(Component.literal("Contains Block Data").withStyle(ChatFormatting.GRAY));
                     }
                     return;
                 }
@@ -181,6 +183,6 @@ public class BlockTransportModule extends Item {
                 // Handle the case where slot 0 doesn't exist
             }
         }
-        tooltipComponents.add(Component.literal("[Empty]"));
+        tooltipComponents.accept(Component.literal("[Empty]"));
     }
 }

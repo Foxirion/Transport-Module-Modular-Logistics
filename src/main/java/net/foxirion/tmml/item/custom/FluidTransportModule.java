@@ -11,6 +11,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -26,6 +27,7 @@ import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.fluids.SimpleFluidContent;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 public class FluidTransportModule extends Item {
     public static final int MAX_FLUID_CAPACITY = 10000;
@@ -208,13 +210,13 @@ public class FluidTransportModule extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         FluidStack fluidStack = getStoredFluid(stack);
         if (!fluidStack.isEmpty()) {
-            tooltipComponents.add(fluidStack.getHoverName());
-            tooltipComponents.add(Component.literal("Capacity: " + fluidStack.getAmount() + "/" + MAX_FLUID_CAPACITY + " mb").withStyle(ChatFormatting.GRAY));
+            tooltipComponents.accept(fluidStack.getHoverName());
+            tooltipComponents.accept(Component.literal("Capacity: " + fluidStack.getAmount() + "/" + MAX_FLUID_CAPACITY + " mb").withStyle(ChatFormatting.GRAY));
             return;
         }
-        tooltipComponents.add(Component.literal("[Empty]"));
+        tooltipComponents.accept(Component.literal("[Empty]"));
     }
 }
