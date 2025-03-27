@@ -28,7 +28,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -141,7 +140,7 @@ public class EntityTransportModule extends Item {
 
     private InteractionResult handleEntityPlace(Level level, UseOnContext context, ItemStack itemStack, CompoundTag storedEntityTag) {
         try {
-            String storedEntityTypeKey = storedEntityTag.getString("id");
+            String storedEntityTypeKey = storedEntityTag.getString("id").orElse("");
             EntityType<?> expectedType = EntityType.byString(storedEntityTypeKey).orElse(null);
 
             if (expectedType == null) {
@@ -188,7 +187,7 @@ public class EntityTransportModule extends Item {
         CompoundTag storedEntity = stack.getOrDefault(TMMLDataComponents.ENTITY_CONTENT, null);
         if (storedEntity != null) {
             // Get the entity type and translate it to a readable name
-            String entityTypeId = storedEntity.getString("id");
+            String entityTypeId = storedEntity.getString("id").orElse("");
             Optional<EntityType<?>> entityType = EntityType.byString(entityTypeId);
             String displayName = entityType
                     .map(type -> Component.translatable(type.getDescriptionId()).getString())
